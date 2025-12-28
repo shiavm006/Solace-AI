@@ -27,7 +27,7 @@ export function Navigation() {
                <div className="w-2 h-2 bg-emerald-500 rounded-full" />
             </div>
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">SARA AI</span>
+          <span className="text-xl font-bold tracking-tight text-white">SOLACE AI</span>
         </Link>
 
       {/* Menu */}

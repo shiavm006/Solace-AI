@@ -98,7 +98,7 @@ export default function Onboarding() {
           <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">What's your phone number?</h2>
-              <p className="text-gray-600">We'll use this to connect you with SARA</p>
+              <p className="text-gray-600">We'll use this to connect you with SOLACE</p>
             </div>
             <input
               type="tel"
@@ -135,7 +135,7 @@ export default function Onboarding() {
             <textarea
               value={about}
               onChange={(e) => setAbout(e.target.value)}
-              placeholder="Share your thoughts, feelings, or anything you'd like SARA to know about you..."
+              placeholder="Share your thoughts, feelings, or anything you'd like SOLACE to know about you..."
               rows={8}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
               autoFocus

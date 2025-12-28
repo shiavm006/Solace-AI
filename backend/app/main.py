@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     chromadb_path: str = "./chroma_db"
     mlflow_tracking_uri: str = "./mlruns"
     wandb_api_key: str = ""
-    wandb_project: str = "sara-ai"
+    wandb_project: str = "solace-ai"
     
     class Config:
         env_file = ".env"
@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 settings = Settings()
 
 app = FastAPI(
-    title="Sara AI Backend",
+    title="Solace AI Backend",
     description="ML-heavy voice companion API with emotion detection and empathetic responses",
     version="1.0.0"
 )
@@ -40,7 +40,7 @@ app.add_middleware(
 async def health():
     return {
         "status": "healthy",
-        "service": "Sara AI Backend"
+        "service": "Solace AI Backend"
     }
 
 @app.post("/voice-webhook")

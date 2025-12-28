@@ -6,7 +6,7 @@ export default function Home() {
       <div className="max-w-2xl w-full text-center space-y-8">
         <div className="space-y-4">
           <h1 className="text-5xl font-bold text-gray-900">
-            Welcome to SARA AI
+            Welcome to SOLACE AI
           </h1>
           <p className="text-xl text-gray-600">
             Your empathetic voice companion for emotional support

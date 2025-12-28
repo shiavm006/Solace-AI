@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SARA AI - Your Empathetic Voice Companion",
+  title: "SOLACE AI - Your Empathetic Voice Companion",
   description: "Experience compassionate conversations with an AI that understands your emotions",
 };
 

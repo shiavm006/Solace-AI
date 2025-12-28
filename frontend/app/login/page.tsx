@@ -24,7 +24,7 @@ export default function Login() {
             {isLogin ? "Welcome Back" : "Create Account"}
           </h1>
           <p className="text-gray-600">
-            {isLogin ? "Sign in to continue" : "Start your journey with SARA"}
+            {isLogin ? "Sign in to continue" : "Start your journey with SOLACE"}
           </p>
         </div>
 
