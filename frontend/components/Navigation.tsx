@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import { Bell, LogOut } from 'lucide-react'
+import { Bell } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import Link from 'next/link'
@@ -11,8 +11,7 @@ export function Navigation() {
     const pathname = usePathname()
     
     const menuItems = [
-      { name: 'Overview', href: '/dashboard' },
-      { name: 'Session Insights', href: '/insights' },
+      { name: 'My Space', href: '/dashboard' },
       { name: 'Call History', href: '/history' },
       { name: 'Wellness Signals', href: '/signals' },
       { name: 'Growth Tracker', href: '/growth' },
@@ -27,7 +26,7 @@ export function Navigation() {
                <div className="w-2 h-2 bg-emerald-500 rounded-full" />
             </div>
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">SOLACE AI</span>
+          <span className="text-xl font-bold tracking-tight text-white">Solace-AI</span>
         </Link>
 
       {/* Menu */}
@@ -56,26 +55,13 @@ export function Navigation() {
         })}
       </div>
 
-      {/* Right side icons */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="rounded-full text-neutral-400 hover:text-white hover:bg-white/5 relative">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 border-2 border-black rounded-full" />
-        </Button>
-        <div className="flex items-center gap-3 pl-2 ml-2 border-l border-white/10">
-          <Button 
-            variant="ghost" 
-            className="text-neutral-400 hover:text-white hover:bg-white/5 flex items-center gap-2"
-            onClick={() => {
-              // Add logout logic here
-              console.log('Logout clicked');
-            }}
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="text-sm font-medium">Logout</span>
-          </Button>
-        </div>
-      </div>
+               {/* Right side icons */}
+               <div className="flex items-center gap-3">
+                 <Button variant="ghost" size="icon" className="rounded-full text-neutral-400 hover:text-white hover:bg-white/5 relative">
+                   <Bell className="w-5 h-5" />
+                   <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 border-2 border-black rounded-full" />
+                 </Button>
+               </div>
     </nav>
   )
 }

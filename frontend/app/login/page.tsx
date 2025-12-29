@@ -1,117 +1,156 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { register, login, saveToken, getToken, getCurrentUser, removeToken } from "@/lib/api";
+import { SignInPage } from "@/components/ui/sign-in";
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [aboutMe, setAboutMe] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = getToken();
+      if (token) {
+        try {
+          await getCurrentUser(token);
+          router.push("/welcome");
+        } catch {
+          removeToken();
+          setCheckingAuth(false);
+        }
+      } else {
+        setCheckingAuth(false);
+      }
+    };
+    checkAuth();
+  }, [router]);
+
+  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // after successful login/signup, redirect to onboarding
-    router.push("/onboarding");
+    setError("");
+    setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const rememberMe = formData.get("rememberMe") === "on";
+
+    try {
+      const response = await login({ email, password, remember_me: rememberMe });
+      saveToken(response.access_token);
+      setLoading(false);
+      router.push("/welcome");
+    } catch (err: any) {
+      setError(err.message || "An error occurred. Please try again.");
+      setLoading(false);
+    }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {isLogin ? "Welcome Back" : "Create Account"}
-          </h1>
-          <p className="text-gray-600">
-            {isLogin ? "Sign in to continue" : "Start your journey with SOLACE"}
-          </p>
-        </div>
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-              placeholder="your@email.com"
-            />
-          </div>
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:start',message:'HandleSignUp called',data:{name:name,email:email,aboutMeLength:aboutMe.length},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'L'})}).catch(()=>{});
+    // #endregion
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-              placeholder="••••••••"
-            />
-          </div>
+    try {
+      if (aboutMe.length < 50) {
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:validation',message:'AboutMe validation failed',data:{length:aboutMe.length},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'L'})}).catch(()=>{});
+        // #endregion
+        setError("About me must be at least 50 characters long");
+        setLoading(false);
+        return;
+      }
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:before-register',message:'Calling register function',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'L'})}).catch(()=>{});
+      // #endregion
+      
+      const response = await register({ name, email, password, about_me: aboutMe });
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:after-register',message:'Register completed successfully',data:{hasToken:!!response.access_token},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'M'})}).catch(()=>{});
+      // #endregion
+      
+      saveToken(response.access_token);
+      setLoading(false);
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:before-redirect',message:'About to redirect',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'M'})}).catch(()=>{});
+      // #endregion
+      
+      router.push("/welcome");
+    } catch (err: any) {
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:error',message:'HandleSignUp caught error',data:{errorMessage:err.message},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'N'})}).catch(()=>{});
+      // #endregion
+      setError(err.message || "An error occurred. Please try again.");
+      setLoading(false);
+    }
+  };
 
-          {isLogin && (
-            <div className="text-right">
-              <Link href="#" className="text-sm text-indigo-600 hover:underline">
-                Forgot password?
-              </Link>
-            </div>
-          )}
+  const handleGoogleSignIn = () => {
+    console.log("Continue with Google clicked");
+  };
 
-          <button
-            type="submit"
-            className="w-full py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-          >
-            {isLogin ? "Sign In" : "Sign Up"}
-          </button>
-        </form>
+  const handleResetPassword = () => {
+    console.log("Reset Password clicked");
+  };
 
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-sm text-gray-600 hover:text-indigo-600"
-          >
-            {isLogin ? (
-              <>Don't have an account? <span className="font-medium">Sign Up</span></>
-            ) : (
-              <>Already have an account? <span className="font-medium">Sign In</span></>
-            )}
-          </button>
-        </div>
+  const handleCreateAccount = () => {
+    setIsLogin(false);
+    setError("");
+  };
 
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <button className="w-full py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="currentColor"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              />
-            </svg>
-            Continue with Google
-          </button>
+  const handleSwitchToLogin = () => {
+    setIsLogin(true);
+    setError("");
+  };
+
+  if (checkingAuth) {
+    return (
+      <div className="bg-background text-foreground h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400 mx-auto"></div>
+          <p className="mt-4 text-sm text-[var(--muted-foreground)]">Checking authentication...</p>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="bg-background text-foreground">
+      <SignInPage
+        isLogin={isLogin}
+        heroImageSrc={undefined}
+        testimonials={[]}
+        onSignIn={handleSignIn}
+        onSignUp={handleSignUp}
+        onGoogleSignIn={handleGoogleSignIn}
+        onResetPassword={handleResetPassword}
+        onCreateAccount={handleCreateAccount}
+        onSwitchToLogin={handleSwitchToLogin}
+        error={error}
+        loading={loading}
+        name={name}
+        onNameChange={setName}
+        email={email}
+        onEmailChange={setEmail}
+        password={password}
+        onPasswordChange={setPassword}
+        aboutMe={aboutMe}
+        onAboutMeChange={setAboutMe}
+      />
     </div>
   );
 }
