@@ -1,13 +1,160 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
+import { getToken, getCurrentUser, removeToken } from "@/lib/api";
+import type { User } from "@/lib/api";
 
 export default function Dashboard() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = getToken();
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+
+      try {
+        const userData = await getCurrentUser(token);
+        
+        // Employees can only access welcome page - redirect them
+        if (userData.role === "employee") {
+          router.push("/welcome");
+          return;
+        }
+
+        // Only admins can access this page
+        if (userData.role !== "admin") {
+          router.push("/login");
+          return;
+        }
+
+        setUser(userData);
+      } catch (error) {
+        removeToken();
+        router.push("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mx-auto"></div>
+          <p className="mt-4 text-sm text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="h-screen bg-black text-white overflow-hidden flex flex-col">
       <Navigation />
       
       <div className="flex-1 pt-8 px-8 pb-0 overflow-hidden flex flex-col">
+
+      {/* Main Title */}
+      <div className="mb-4 flex-shrink-0">
+        <h1 className="text-4xl font-bold mb-2">Your Emotional Health</h1>
+        <p className="text-gray-500 text-sm">Session ID: #449836</p>
+      </div>
+
+      {/* Wellness Visualization */}
+      <div className="relative mb-4 h-48 flex items-center justify-center flex-shrink-0">
+        {/* Heart/Brain Wellness Visualization */}
+        <div className="relative w-full max-w-4xl">
+          <div className="flex items-center justify-center">
+            <svg className="w-64 h-64" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet">
+              {/* Heart shape */}
+              <path
+                d="M100,180 C60,140 20,100 20,70 C20,50 40,30 60,30 C80,30 100,50 100,70 C100,50 120,30 140,30 C160,30 180,50 180,70 C180,100 140,140 100,180 Z"
+                fill="#1a1a1a"
+                stroke="#444"
+                strokeWidth="2"
+              />
+              {/* Pulse waves */}
+              {[0, 1, 2].map((i) => (
+                <circle
+                  key={i}
+                  cx="100"
+                  cy="100"
+                  r={30 + i * 20}
+                  fill="none"
+                  stroke="#666"
+                  strokeWidth="1"
+                  strokeDasharray="5,5"
+                  opacity={0.5 - i * 0.15}
+                />
+              ))}
+            </svg>
+          </div>
+
+          {/* Icon Buttons */}
+          <div className="absolute left-8 top-1/2 -translate-y-1/2 flex gap-2">
+            <button aria-label="View image" className="p-2 bg-gray-800/80 backdrop-blur rounded-lg hover:bg-gray-700">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </button>
+            <button aria-label="View location" className="p-2 bg-gray-800/80 backdrop-blur rounded-lg hover:bg-gray-700">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Mood Level Card */}
+          <div className="absolute right-8 top-1/2 -translate-y-1/2 bg-gray-800/80 backdrop-blur rounded-xl p-4 w-48">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-gray-400">Mood level, %</span>
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+              </svg>
+            </div>
+            <div className="text-4xl font-bold mb-3">80</div>
+            <div className="h-12 relative">
+              <svg className="w-full h-full" viewBox="0 0 150 40" preserveAspectRatio="none">
+                <polyline
+                  points="0,30 20,25 40,28 60,20 80,15 100,18 120,22 140,12 150,15"
+                  fill="none"
+                  stroke="#888"
+                  strokeWidth="1.5"
+                />
+              </svg>
+              <span className="absolute bottom-0 right-0 text-xs text-gray-500">stable</span>
+            </div>
+          </div>
+
+          {/* Zoom Controls */}
+          <div className="absolute right-8 bottom-0 flex flex-col gap-2">
+            <button aria-label="Zoom in" className="p-2 bg-gray-800/80 backdrop-blur rounded-lg hover:bg-gray-700">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </button>
+            <button aria-label="Zoom out" className="p-2 bg-gray-800/80 backdrop-blur rounded-lg hover:bg-gray-700">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Stats Cards Grid */}
       <div className="grid grid-cols-4 gap-1 pb-0 items-end mt-auto">

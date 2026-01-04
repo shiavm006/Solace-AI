@@ -4,7 +4,7 @@ from pydantic import Field
 
 class Settings(BaseSettings):
     MONGODB_URL: str = Field(default="mongodb://localhost:27017", validation_alias="MONGO_URI")
-    DATABASE_NAME: str = "sara_ai"
+    DATABASE_NAME: str = "solace_ai"
     REDIS_URL: str = "redis://localhost:6379"
     SECRET_KEY: str = Field(default="your-secret-key-change-in-production-use-openssl-rand-hex-32", validation_alias="JWT_SECRET")
     ALGORITHM: str = "HS256"

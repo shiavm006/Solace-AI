@@ -15,7 +15,7 @@ router = APIRouter()
 async def register(user: UserCreate):
     # #region agent log
     try:
-        with open('/Users/shivammittal/Desktop/Sara_AI/.cursor/debug.log','a') as f:f.write(json.dumps({"location":"auth.py:15","message":"Register endpoint entry","data":{"email":user.email,"name":user.name,"about_me_len":len(user.about_me) if user.about_me else 0},"timestamp":int(time.time()*1000),"sessionId":"debug-session","hypothesisId":"A,C"})+'\n')
+        with open('/Users/shivammittal/Desktop/Sara_AI/.cursor/debug.log','a') as f:f.write(json.dumps({"location":"auth.py:15","message":"Register endpoint entry","data":{"email":user.email,"first_name":user.first_name,"last_name":user.last_name,"role":user.role},"timestamp":int(time.time()*1000),"sessionId":"debug-session","hypothesisId":"A,C"})+'\n')
     except: pass
     # #endregion
     
@@ -39,8 +39,9 @@ async def register(user: UserCreate):
     
     user_dict = {
         "email": user.email,
-        "name": user.name,
-        "about_me": user.about_me,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "role": user.role,
         "hashed_password": get_password_hash(user.password),
         "is_active": True,
         "created_at": datetime.utcnow(),
@@ -107,6 +108,38 @@ async def login(credentials: UserLogin):
             detail="Inactive user account"
         )
     
+    # Migrate old user records to new schema
+    needs_migration = False
+    if "name" in user and ("first_name" not in user or "last_name" not in user):
+        # Split old "name" field into first_name and last_name
+        name_parts = user["name"].strip().split(" ", 1)
+        user["first_name"] = name_parts[0] if name_parts else "User"
+        user["last_name"] = name_parts[1] if len(name_parts) > 1 else ""
+        if not user["last_name"]:
+            user["last_name"] = "User"  # Default if no last name
+        needs_migration = True
+    
+    if "role" not in user:
+        # Default to employee for old users
+        user["role"] = "employee"
+        needs_migration = True
+    
+    # Update database if migration was needed
+    if needs_migration:
+        update_data = {
+            "first_name": user["first_name"],
+            "last_name": user["last_name"],
+            "role": user["role"],
+            "updated_at": datetime.utcnow()
+        }
+        if "name" in user:
+            # Keep old name field for backward compatibility, but add new fields
+            pass
+        users_collection.update_one(
+            {"_id": user["_id"]},
+            {"$set": update_data}
+        )
+    
     if credentials.remember_me:
         access_token_expires = timedelta(days=settings.REMEMBER_ME_TOKEN_EXPIRE_DAYS)
     else:
@@ -117,7 +150,18 @@ async def login(credentials: UserLogin):
     )
     
     user["id"] = str(user["_id"])
-    user_response = UserResponse(**user)
+    # Prepare user data for response (exclude MongoDB _id and old name field)
+    user_for_response = {
+        "id": user["id"],
+        "email": user["email"],
+        "first_name": user["first_name"],
+        "last_name": user["last_name"],
+        "role": user["role"],
+        "is_active": user.get("is_active", True),
+        "created_at": user.get("created_at", datetime.utcnow()),
+        "updated_at": user.get("updated_at", datetime.utcnow())
+    }
+    user_response = UserResponse(**user_for_response)
     
     # #region agent log
     try:
@@ -133,16 +177,24 @@ async def get_current_user_profile(current_user: UserResponse = Depends(get_curr
 
 @router.put("/me", response_model=UserResponse)
 async def update_current_user(
-    name: str = None,
-    about_me: str = None,
+    first_name: str = None,
+    last_name: str = None,
+    role: str = None,
     current_user: UserResponse = Depends(get_current_active_user)
 ):
     update_data = {"updated_at": datetime.utcnow()}
     
-    if name is not None:
-        update_data["name"] = name
-    if about_me is not None:
-        update_data["about_me"] = about_me
+    if first_name is not None:
+        update_data["first_name"] = first_name
+    if last_name is not None:
+        update_data["last_name"] = last_name
+    if role is not None:
+        if role not in ["admin", "employee"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Role must be either 'admin' or 'employee'"
+            )
+        update_data["role"] = role
     
     users_collection.update_one(
         {"email": current_user.email},

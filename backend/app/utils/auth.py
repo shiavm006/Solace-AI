@@ -49,8 +49,48 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     if user is None:
         raise credentials_exception
     
+    # Migrate old user records to new schema
+    needs_migration = False
+    if "name" in user and ("first_name" not in user or "last_name" not in user):
+        # Split old "name" field into first_name and last_name
+        name_parts = user["name"].strip().split(" ", 1)
+        user["first_name"] = name_parts[0] if name_parts else "User"
+        user["last_name"] = name_parts[1] if len(name_parts) > 1 else ""
+        if not user["last_name"]:
+            user["last_name"] = "User"  # Default if no last name
+        needs_migration = True
+    
+    if "role" not in user:
+        # Default to employee for old users
+        user["role"] = "employee"
+        needs_migration = True
+    
+    # Update database if migration was needed
+    if needs_migration:
+        update_data = {
+            "first_name": user["first_name"],
+            "last_name": user["last_name"],
+            "role": user["role"],
+            "updated_at": datetime.utcnow()
+        }
+        users_collection.update_one(
+            {"_id": user["_id"]},
+            {"$set": update_data}
+        )
+    
     user["id"] = str(user["_id"])
-    return UserResponse(**user)
+    # Prepare user data for response
+    user_for_response = {
+        "id": user["id"],
+        "email": user["email"],
+        "first_name": user["first_name"],
+        "last_name": user["last_name"],
+        "role": user["role"],
+        "is_active": user.get("is_active", True),
+        "created_at": user.get("created_at", datetime.utcnow()),
+        "updated_at": user.get("updated_at", datetime.utcnow())
+    }
+    return UserResponse(**user_for_response)
 
 async def get_current_active_user(current_user: UserResponse = Depends(get_current_user)) -> UserResponse:
     if not current_user.is_active:

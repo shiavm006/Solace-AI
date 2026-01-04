@@ -1,10 +1,11 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface RegisterData {
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   password: string;
-  about_me: string;
+  role: "admin" | "employee";
 }
 
 export interface LoginData {
@@ -21,16 +22,18 @@ export interface AuthResponse {
 
 export interface User {
   id: string;
-  name: string;
+  first_name: string;
+  last_name: string;
+  name?: string; // Computed property for backward compatibility
   email: string;
-  about_me: string;
+  role: "admin" | "employee";
   created_at?: string;
   last_login?: string;
 }
 
 export async function register(data: RegisterData): Promise<AuthResponse> {
   // #region agent log
-  fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:register:start',message:'Register function called',data:{email:data.email,name:data.name,hasPassword:!!data.password,aboutMeLength:data.about_me?.length||0,apiUrl:`${API_BASE_URL}/api/auth/register`},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
+  fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:register:start',message:'Register function called',data:{email:data.email,name:data.name,hasPassword:!!data.password,role:data.role,apiUrl:`${API_BASE_URL}/api/auth/register`},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
   // #endregion
   
   const controller = new AbortController();
@@ -194,4 +197,5 @@ export function removeToken(): void {
     localStorage.removeItem("auth_token");
   }
 }
+
 

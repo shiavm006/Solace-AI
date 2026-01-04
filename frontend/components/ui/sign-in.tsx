@@ -35,14 +35,16 @@ interface SignInPageProps {
   onSwitchToLogin?: () => void;
   error?: string;
   loading?: boolean;
-  name?: string;
-  onNameChange?: (value: string) => void;
+  firstName?: string;
+  onFirstNameChange?: (value: string) => void;
+  lastName?: string;
+  onLastNameChange?: (value: string) => void;
   email?: string;
   onEmailChange?: (value: string) => void;
   password?: string;
   onPasswordChange?: (value: string) => void;
-  aboutMe?: string;
-  onAboutMeChange?: (value: string) => void;
+  role?: "admin" | "employee";
+  onRoleChange?: (value: "admin" | "employee") => void;
 }
 
 
@@ -80,14 +82,16 @@ export const SignInPage: React.FC<SignInPageProps> = ({
   onSwitchToLogin,
   error,
   loading = false,
-  name = "",
-  onNameChange,
+  firstName = "",
+  onFirstNameChange,
+  lastName = "",
+  onLastNameChange,
   email = "",
   onEmailChange,
   password = "",
   onPasswordChange,
-  aboutMe = "",
-  onAboutMeChange,
+  role = "employee",
+  onRoleChange,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -97,7 +101,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
   
   const defaultDescription = isLogin
     ? "Access your account and continue your journey with us"
-    : "Start your journey with Sara AI and unlock new possibilities";
+    : "Start your journey with Solace AI and unlock new possibilities";
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -132,18 +136,31 @@ export const SignInPage: React.FC<SignInPageProps> = ({
             <form className="space-y-4" onSubmit={handleSubmit}>
               {!isLogin && (
                 <div className="animate-element animate-delay-300 space-y-2">
-                  <label className="text-xs font-medium text-[var(--muted-foreground)] block animate-element animate-delay-300">Full Name</label>
-                  <GlassInputWrapper>
-                    <input 
-                      name="name" 
-                      type="text" 
-                      placeholder="Enter your full name" 
-                      value={name}
-                      onChange={(e) => onNameChange?.(e.target.value)}
-                      required
-                      className="w-full bg-transparent text-sm p-3.5 rounded-xl focus:outline-none animate-element animate-delay-300" 
-                    />
-                  </GlassInputWrapper>
+                  <label className="text-xs font-medium text-[var(--muted-foreground)] block animate-element animate-delay-300">Name</label>
+                  <div className="flex gap-3">
+                    <GlassInputWrapper className="flex-1">
+                      <input 
+                        name="firstName" 
+                        type="text" 
+                        placeholder="First name" 
+                        value={firstName}
+                        onChange={(e) => onFirstNameChange?.(e.target.value)}
+                        required
+                        className="w-full bg-transparent text-sm p-3.5 rounded-xl focus:outline-none animate-element animate-delay-300" 
+                      />
+                    </GlassInputWrapper>
+                    <GlassInputWrapper className="flex-1">
+                      <input 
+                        name="lastName" 
+                        type="text" 
+                        placeholder="Last name" 
+                        value={lastName}
+                        onChange={(e) => onLastNameChange?.(e.target.value)}
+                        required
+                        className="w-full bg-transparent text-sm p-3.5 rounded-xl focus:outline-none animate-element animate-delay-300" 
+                      />
+                    </GlassInputWrapper>
+                  </div>
                 </div>
               )}
 
@@ -192,23 +209,20 @@ export const SignInPage: React.FC<SignInPageProps> = ({
               {!isLogin && (
                 <div className="animate-element animate-delay-600 space-y-2">
                   <label className="text-xs font-medium text-[var(--muted-foreground)] block animate-element animate-delay-600">
-                    About Me <span className="text-xs text-[var(--muted-foreground)]/70 font-normal">(min 50 characters)</span>
+                    Role
                   </label>
                   <GlassInputWrapper>
-                    <textarea 
-                      name="aboutMe" 
-                      placeholder="Tell us about yourself (at least 50 characters)..." 
-                      value={aboutMe}
-                      onChange={(e) => onAboutMeChange?.(e.target.value)}
+                    <select 
+                      name="role" 
+                      value={role}
+                      onChange={(e) => onRoleChange?.(e.target.value as "admin" | "employee")}
                       required
-                      minLength={50}
-                      rows={4}
-                      className="w-full bg-transparent text-sm p-3.5 rounded-xl focus:outline-none resize-none animate-element animate-delay-600" 
-                    />
+                      className="w-full bg-transparent text-sm p-3.5 rounded-xl focus:outline-none animate-element animate-delay-600"
+                    >
+                      <option value="employee">Employee</option>
+                      <option value="admin">Admin</option>
+                    </select>
                   </GlassInputWrapper>
-                  <div className="text-xs text-[var(--muted-foreground)] animate-element animate-delay-600 text-right">
-                    {aboutMe.length}/50 characters
-                  </div>
                 </div>
               )}
 

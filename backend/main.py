@@ -4,8 +4,8 @@ from app.config import settings
 from app.routes import auth, calls
 
 app = FastAPI(
-    title="Sara AI API",
-    description="Backend API for Sara AI Application",
+    title="Solace AI API",
+    description="Backend API for Solace AI Application",
     version="1.0.0"
 )
 
@@ -22,7 +22,7 @@ app.include_router(calls.router, prefix="/api/calls", tags=["Calls"])
 
 @app.get("/")
 async def root():
-    return {"message": "Sara AI API is running"}
+    return {"message": "Solace AI API is running"}
 
 @app.get("/health")
 async def health_check():

@@ -1,21 +1,27 @@
 "use client"
 
 import React from 'react'
-import { Bell } from 'lucide-react'
+import { Bell, LogOut } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { removeToken } from '@/lib/api'
 
 export function Navigation() {
     const pathname = usePathname()
+    const router = useRouter()
     
     const menuItems = [
       { name: 'My Space', href: '/dashboard' },
-      { name: 'Call History', href: '/history' },
-      { name: 'Wellness Signals', href: '/signals' },
+      { name: 'Reports', href: '/history' },
       { name: 'Growth Tracker', href: '/growth' },
     ]
+
+    const handleLogout = () => {
+      removeToken()
+      router.push('/login')
+    }
 
     return (
       <nav className="flex items-center justify-between px-8 py-4 bg-black/80 backdrop-blur-md sticky top-0 z-50 border-b border-white/5">
@@ -56,10 +62,23 @@ export function Navigation() {
       </div>
 
                {/* Right side icons */}
-               <div className="flex items-center gap-3">
-                 <Button variant="ghost" size="icon" className="rounded-full text-neutral-400 hover:text-white hover:bg-white/5 relative">
+               <div className="flex items-center gap-2">
+                 <Button 
+                   variant="ghost" 
+                   size="icon" 
+                   className="rounded-full text-neutral-400 hover:text-white hover:bg-white/5 relative"
+                 >
                    <Bell className="w-5 h-5" />
                    <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 border-2 border-black rounded-full" />
+                 </Button>
+                 <Button
+                   onClick={handleLogout}
+                   variant="ghost"
+                   size="icon"
+                   className="rounded-full text-neutral-400 hover:text-white hover:bg-white/5"
+                   title="Logout"
+                 >
+                   <LogOut className="w-5 h-5" />
                  </Button>
                </div>
     </nav>

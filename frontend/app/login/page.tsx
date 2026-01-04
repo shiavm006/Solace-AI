@@ -7,10 +7,11 @@ import { SignInPage } from "@/components/ui/sign-in";
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [aboutMe, setAboutMe] = useState("");
+  const [role, setRole] = useState<"admin" | "employee">("employee");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -21,8 +22,13 @@ export default function Login() {
       const token = getToken();
       if (token) {
         try {
-          await getCurrentUser(token);
-          router.push("/welcome");
+          const user = await getCurrentUser(token);
+          // Redirect based on role
+          if (user.role === "admin") {
+            router.push("/dashboard");
+          } else {
+            router.push("/welcome");
+          }
         } catch {
           removeToken();
           setCheckingAuth(false);
@@ -44,9 +50,14 @@ export default function Login() {
 
     try {
       const response = await login({ email, password, remember_me: rememberMe });
-      saveToken(response.access_token);
+        saveToken(response.access_token);
       setLoading(false);
-      router.push("/welcome");
+        // Redirect based on role
+        if (response.user.role === "admin") {
+          router.push("/dashboard");
+        } else {
+          router.push("/welcome");
+        }
     } catch (err: any) {
       setError(err.message || "An error occurred. Please try again.");
       setLoading(false);
@@ -59,37 +70,33 @@ export default function Login() {
     setLoading(true);
 
     // #region agent log
-    fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:start',message:'HandleSignUp called',data:{name:name,email:email,aboutMeLength:aboutMe.length},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'L'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:start',message:'HandleSignUp called',data:{firstName:firstName,lastName:lastName,email:email,role:role},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'L'})}).catch(()=>{});
     // #endregion
 
     try {
-      if (aboutMe.length < 50) {
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:validation',message:'AboutMe validation failed',data:{length:aboutMe.length},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'L'})}).catch(()=>{});
-        // #endregion
-        setError("About me must be at least 50 characters long");
-        setLoading(false);
-        return;
-      }
-      
       // #region agent log
       fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:before-register',message:'Calling register function',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'L'})}).catch(()=>{});
       // #endregion
       
-      const response = await register({ name, email, password, about_me: aboutMe });
+        const response = await register({ first_name: firstName, last_name: lastName, email, password, role });
       
       // #region agent log
       fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:after-register',message:'Register completed successfully',data:{hasToken:!!response.access_token},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'M'})}).catch(()=>{});
       // #endregion
       
-      saveToken(response.access_token);
+        saveToken(response.access_token);
       setLoading(false);
       
       // #region agent log
       fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:before-redirect',message:'About to redirect',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'M'})}).catch(()=>{});
       // #endregion
       
-      router.push("/welcome");
+        // Redirect based on role
+        if (response.user.role === "admin") {
+          router.push("/dashboard");
+        } else {
+          router.push("/welcome");
+        }
     } catch (err: any) {
       // #region agent log
       fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:error',message:'HandleSignUp caught error',data:{errorMessage:err.message},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'N'})}).catch(()=>{});
@@ -118,7 +125,7 @@ export default function Login() {
   };
 
   if (checkingAuth) {
-    return (
+  return (
       <div className="bg-background text-foreground h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400 mx-auto"></div>
@@ -142,14 +149,16 @@ export default function Login() {
         onSwitchToLogin={handleSwitchToLogin}
         error={error}
         loading={loading}
-        name={name}
-        onNameChange={setName}
+        firstName={firstName}
+        onFirstNameChange={setFirstName}
+        lastName={lastName}
+        onLastNameChange={setLastName}
         email={email}
         onEmailChange={setEmail}
         password={password}
         onPasswordChange={setPassword}
-        aboutMe={aboutMe}
-        onAboutMeChange={setAboutMe}
+        role={role}
+        onRoleChange={setRole}
       />
     </div>
   );

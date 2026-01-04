@@ -1,11 +1,18 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, computed_field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Literal
 
 class UserBase(BaseModel):
     email: EmailStr
-    name: str = Field(..., min_length=1, max_length=100)
-    about_me: Optional[str] = Field(None, max_length=500)
+    first_name: str = Field(..., min_length=1, max_length=50)
+    last_name: str = Field(..., min_length=1, max_length=50)
+    role: Literal["admin", "employee"] = Field(..., description="User role: admin or employee")
+    
+    @computed_field
+    @property
+    def name(self) -> str:
+        """Computed property for backward compatibility"""
+        return f"{self.first_name} {self.last_name}"
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8)

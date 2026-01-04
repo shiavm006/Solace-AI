@@ -1,6 +1,6 @@
-# Sara AI Backend
+# Solace AI Backend
 
-FastAPI backend for the Sara AI application with MongoDB.
+FastAPI backend for the Solace AI application with MongoDB.
 
 ## Setup
 
@@ -33,7 +33,7 @@ docker run -d -p 27017:27017 --name mongodb mongo:latest
 ```bash
 # Create .env file in the backend directory
 MONGODB_URL=mongodb://localhost:27017
-DATABASE_NAME=sara_ai
+DATABASE_NAME=solace_ai
 SECRET_KEY=your-secret-key-here-use-openssl-rand-hex-32
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30

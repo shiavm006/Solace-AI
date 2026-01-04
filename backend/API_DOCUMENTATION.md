@@ -1,4 +1,4 @@
-# Sara AI API Documentation
+# Solace AI API Documentation
 
 ## Base URL
 ```
