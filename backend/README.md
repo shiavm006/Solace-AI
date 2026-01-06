@@ -11,7 +11,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # 2. Configure .env
-MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/
+MONGO_URI=your-url
 JWT_SECRET=your-secret-key
 GROQ_API_KEY=your-groq-api-key
 
