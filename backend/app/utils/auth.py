@@ -5,7 +5,7 @@ import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.config import settings
-from app.database import users_collection
+from app.database import get_users_collection
 from app.schemas.user import TokenData, UserResponse
 from bson import ObjectId
 security = HTTPBearer()
@@ -45,27 +45,24 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except JWTError:
         raise credentials_exception
     
-    user = users_collection.find_one({"email": token_data.email})
+    users_collection = get_users_collection()
+    user = await users_collection.find_one({"email": token_data.email})
     if user is None:
         raise credentials_exception
     
-    # Migrate old user records to new schema
     needs_migration = False
     if "name" in user and ("first_name" not in user or "last_name" not in user):
-        # Split old "name" field into first_name and last_name
         name_parts = user["name"].strip().split(" ", 1)
         user["first_name"] = name_parts[0] if name_parts else "User"
         user["last_name"] = name_parts[1] if len(name_parts) > 1 else ""
         if not user["last_name"]:
-            user["last_name"] = "User"  # Default if no last name
+            user["last_name"] = "User"
         needs_migration = True
     
     if "role" not in user:
-        # Default to employee for old users
         user["role"] = "employee"
         needs_migration = True
     
-    # Update database if migration was needed
     if needs_migration:
         update_data = {
             "first_name": user["first_name"],
@@ -73,13 +70,12 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             "role": user["role"],
             "updated_at": datetime.utcnow()
         }
-        users_collection.update_one(
+        await users_collection.update_one(
             {"_id": user["_id"]},
             {"$set": update_data}
         )
     
     user["id"] = str(user["_id"])
-    # Prepare user data for response
     user_for_response = {
         "id": user["id"],
         "email": user["email"],

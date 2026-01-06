@@ -14,6 +14,5 @@ class UserInDB(BaseModel):
     
     @property
     def name(self) -> str:
-        """Computed property for backward compatibility"""
         return f"{self.first_name} {self.last_name}"
 

@@ -1,22 +1,44 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Bell, LogOut } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { removeToken } from '@/lib/api'
+import { removeToken, getToken, getCurrentUser } from '@/lib/api'
+import type { User } from '@/lib/api'
 
 export function Navigation() {
     const pathname = usePathname()
     const router = useRouter()
+    const [user, setUser] = useState<User | null>(null)
     
-    const menuItems = [
-      { name: 'My Space', href: '/dashboard' },
-      { name: 'Reports', href: '/history' },
-      { name: 'Growth Tracker', href: '/growth' },
-    ]
+    useEffect(() => {
+      const fetchUser = async () => {
+        const token = getToken()
+        if (token) {
+          try {
+            const userData = await getCurrentUser(token)
+            setUser(userData)
+          } catch (error) {
+            console.error('Failed to fetch user:', error)
+          }
+        }
+      }
+      fetchUser()
+    }, [])
+    
+    const menuItems = user?.role === 'admin' 
+      ? [
+          { name: 'My Space', href: '/dashboard' },
+          { name: 'Reports', href: '/history' },
+          { name: 'Growth Tracker', href: '/growth' },
+        ]
+      : [
+          { name: 'Welcome', href: '/welcome' },
+          { name: 'My Check-ins', href: '/my-checkins' },
+        ]
 
     const handleLogout = () => {
       removeToken()
@@ -25,7 +47,7 @@ export function Navigation() {
 
     return (
       <nav className="flex items-center justify-between px-8 py-4 bg-black/80 backdrop-blur-md sticky top-0 z-50 border-b border-white/5">
-        {/* Logo */}
+        {}
         <Link href="/dashboard" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
             <div className="w-4 h-4 bg-white rounded-sm rotate-45 flex items-center justify-center">
@@ -35,7 +57,7 @@ export function Navigation() {
           <span className="text-xl font-bold tracking-tight text-white">Solace-AI</span>
         </Link>
 
-      {/* Menu */}
+      {}
       <div className="hidden lg:flex items-center gap-6">
         {menuItems.map((item) => {
           const isActive = pathname === item.href
@@ -61,7 +83,7 @@ export function Navigation() {
         })}
       </div>
 
-               {/* Right side icons */}
+               {}
                <div className="flex items-center gap-2">
                  <Button 
                    variant="ghost" 

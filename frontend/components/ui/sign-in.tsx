@@ -114,7 +114,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
 
   return (
     <div className={`h-[100dvh] flex font-geist w-[100dvw] ${heroImageSrc ? 'flex-col md:flex-row' : 'items-center justify-center'}`}>
-      {/* Left column: sign-in/sign-up form */}
+      {}
       <section className={`flex-1 flex items-center justify-center p-6 md:p-8 ${!heroImageSrc ? 'w-full' : ''}`}>
         <div className={`w-full ${heroImageSrc ? 'max-w-md' : 'max-w-md'}`}>
           <div className="flex flex-col gap-6">
@@ -275,7 +275,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
         </div>
       </section>
 
-      {/* Right column: hero image */}
+      {}
       {heroImageSrc && (
         <section className="hidden md:block flex-1 relative p-4">
           <div className="animate-slide-right animate-delay-300 absolute inset-4 rounded-3xl bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${heroImageSrc})` }}></div>

@@ -11,7 +11,6 @@ class UserBase(BaseModel):
     @computed_field
     @property
     def name(self) -> str:
-        """Computed property for backward compatibility"""
         return f"{self.first_name} {self.last_name}"
 
 class UserCreate(UserBase):

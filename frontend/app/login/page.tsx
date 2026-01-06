@@ -23,7 +23,6 @@ export default function Login() {
       if (token) {
         try {
           const user = await getCurrentUser(token);
-          // Redirect based on role
           if (user.role === "admin") {
             router.push("/dashboard");
           } else {
@@ -52,7 +51,6 @@ export default function Login() {
       const response = await login({ email, password, remember_me: rememberMe });
         saveToken(response.access_token);
       setLoading(false);
-        // Redirect based on role
         if (response.user.role === "admin") {
           router.push("/dashboard");
         } else {
@@ -69,38 +67,17 @@ export default function Login() {
     setError("");
     setLoading(true);
 
-    // #region agent log
-    fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:start',message:'HandleSignUp called',data:{firstName:firstName,lastName:lastName,email:email,role:role},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'L'})}).catch(()=>{});
-    // #endregion
-
     try {
-      // #region agent log
-      fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:before-register',message:'Calling register function',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'L'})}).catch(()=>{});
-      // #endregion
-      
-        const response = await register({ first_name: firstName, last_name: lastName, email, password, role });
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:after-register',message:'Register completed successfully',data:{hasToken:!!response.access_token},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'M'})}).catch(()=>{});
-      // #endregion
-      
-        saveToken(response.access_token);
+      const response = await register({ first_name: firstName, last_name: lastName, email, password, role });
+      saveToken(response.access_token);
       setLoading(false);
       
-      // #region agent log
-      fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:before-redirect',message:'About to redirect',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'M'})}).catch(()=>{});
-      // #endregion
-      
-        // Redirect based on role
-        if (response.user.role === "admin") {
-          router.push("/dashboard");
-        } else {
-          router.push("/welcome");
-        }
+      if (response.user.role === "admin") {
+        router.push("/dashboard");
+      } else {
+        router.push("/welcome");
+      }
     } catch (err: any) {
-      // #region agent log
-      fetch('http://127.0.0.1:7244/ingest/344498d3-18a3-4342-9fe8-144a6ce2e550',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleSignUp:error',message:'HandleSignUp caught error',data:{errorMessage:err.message},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'N'})}).catch(()=>{});
-      // #endregion
       setError(err.message || "An error occurred. Please try again.");
       setLoading(false);
     }

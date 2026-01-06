@@ -22,13 +22,11 @@ export default function Dashboard() {
       try {
         const userData = await getCurrentUser(token);
         
-        // Employees can only access welcome page - redirect them
         if (userData.role === "employee") {
           router.push("/welcome");
           return;
         }
 
-        // Only admins can access this page
         if (userData.role !== "admin") {
           router.push("/login");
           return;
@@ -67,26 +65,26 @@ export default function Dashboard() {
       
       <div className="flex-1 pt-8 px-8 pb-0 overflow-hidden flex flex-col">
 
-      {/* Main Title */}
+      {}
       <div className="mb-4 flex-shrink-0">
         <h1 className="text-4xl font-bold mb-2">Your Emotional Health</h1>
         <p className="text-gray-500 text-sm">Session ID: #449836</p>
       </div>
 
-      {/* Wellness Visualization */}
+      {}
       <div className="relative mb-4 h-48 flex items-center justify-center flex-shrink-0">
-        {/* Heart/Brain Wellness Visualization */}
+        {}
         <div className="relative w-full max-w-4xl">
           <div className="flex items-center justify-center">
             <svg className="w-64 h-64" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet">
-              {/* Heart shape */}
+              {}
               <path
                 d="M100,180 C60,140 20,100 20,70 C20,50 40,30 60,30 C80,30 100,50 100,70 C100,50 120,30 140,30 C160,30 180,50 180,70 C180,100 140,140 100,180 Z"
                 fill="#1a1a1a"
                 stroke="#444"
                 strokeWidth="2"
               />
-              {/* Pulse waves */}
+              {}
               {[0, 1, 2].map((i) => (
                 <circle
                   key={i}
@@ -103,7 +101,7 @@ export default function Dashboard() {
             </svg>
           </div>
 
-          {/* Icon Buttons */}
+          {}
           <div className="absolute left-8 top-1/2 -translate-y-1/2 flex gap-2">
             <button aria-label="View image" className="p-2 bg-gray-800/80 backdrop-blur rounded-lg hover:bg-gray-700">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,7 +116,7 @@ export default function Dashboard() {
             </button>
           </div>
 
-          {/* Mood Level Card */}
+          {}
           <div className="absolute right-8 top-1/2 -translate-y-1/2 bg-gray-800/80 backdrop-blur rounded-xl p-4 w-48">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm text-gray-400">Mood level, %</span>
@@ -140,7 +138,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Zoom Controls */}
+          {}
           <div className="absolute right-8 bottom-0 flex flex-col gap-2">
             <button aria-label="Zoom in" className="p-2 bg-gray-800/80 backdrop-blur rounded-lg hover:bg-gray-700">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,9 +154,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Cards Grid */}
+      {}
       <div className="grid grid-cols-4 gap-1 pb-0 items-end mt-auto">
-        {/* Current Mood Card */}
+        {}
         <div className="bg-white text-black rounded-t-2xl p-6 flex flex-col" style={{ height: '35vh' }}>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm font-medium text-gray-600">Current Mood</h3>
@@ -204,7 +202,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Sessions Card */}
+        {}
         <div className="bg-white text-black rounded-t-2xl p-6 flex flex-col" style={{ height: '35vh' }}>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm font-medium text-gray-600">Sessions Completed</h3>
@@ -229,7 +227,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Stress Level Card */}
+        {}
         <div className="bg-white text-black rounded-t-2xl p-6 flex flex-col" style={{ height: '35vh' }}>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm font-medium text-gray-600">Stress Level</h3>
@@ -254,7 +252,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Call Engagement Card */}
+        {}
         <div className="bg-white text-black rounded-t-2xl p-6 flex flex-col" style={{ height: '35vh' }}>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm font-medium text-gray-600">Call Engagement</h3>

@@ -20,7 +20,6 @@ export default function Onboarding() {
     } else if (step === "phone") {
       setStep("about");
     } else if (step === "about") {
-      // complete onboarding and go to dashboard
       router.push("/dashboard");
     }
   };
