@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Square } from 'lucide-react';
+import Alert from '@/components/ui/alert';
 
 interface CheckInOverlayProps {
   onClose: () => void;
@@ -10,12 +11,15 @@ interface CheckInOverlayProps {
 export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(120); // 2 minutes in seconds
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const startCamera = async () => {
@@ -44,6 +48,9 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
     };
   }, []);
 
@@ -54,6 +61,10 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
       });
 
       chunksRef.current = [];
+      // Clear any previous messages
+      setError(null);
+      setSuccess(null);
+      
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           chunksRef.current.push(e.data);
@@ -67,6 +78,26 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
       mediaRecorder.start();
       mediaRecorderRef.current = mediaRecorder;
       setIsRecording(true);
+      setTimeRemaining(120); // Reset to 2 minutes
+
+      // Start countdown timer
+      timerIntervalRef.current = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev <= 1) {
+            // Auto-stop recording when timer reaches 0
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+              mediaRecorderRef.current.stop();
+              setIsRecording(false);
+            }
+            if (timerIntervalRef.current) {
+              clearInterval(timerIntervalRef.current);
+              timerIntervalRef.current = null;
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     } catch (err: any) {
       setError('Failed to start recording. Please try again.');
     }
@@ -76,6 +107,11 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+    }
+    // Clear timer
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
     }
   };
 
@@ -106,9 +142,11 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
         const error = await response.json();
         
         if (response.status === 401 || error.detail?.includes('credentials')) {
-          alert('Your session has expired. Please log in again.');
-          localStorage.removeItem('auth_token');
-          window.location.href = '/login';
+          setError('Your session has expired. Please log in again.');
+          setTimeout(() => {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/login';
+          }, 2000);
           return;
         }
         
@@ -119,8 +157,11 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
       console.log('Upload successful:', data);
 
       setIsSaving(false);
-      handleClose();
-      alert(`Check-in saved successfully! 🎉\nTask ID: ${data.task_id}`);
+      setSuccess(`Check-in saved successfully! 🎉 Task ID: ${data.task_id}`);
+      
+      setTimeout(() => {
+        handleClose();
+      }, 3000);
     } catch (err: any) {
       console.error('Upload error:', err);
       setIsSaving(false);
@@ -136,7 +177,18 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
     }
+    // Clear timer on close
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
     onClose();
+  };
+
+  // Format time as MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -168,8 +220,14 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
         {}
         <div className="w-full max-w-md">
           {error && (
-            <div className="mb-4 p-4 bg-red-500/90 backdrop-blur-sm rounded-lg text-white text-center">
-              {error}
+            <div className="mb-4">
+              <Alert type="error" message={error} />
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-4">
+              <Alert type="success" message={success} />
             </div>
           )}
 
@@ -187,13 +245,18 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
               </div>
 
               {}
-              <button
-                onClick={stopRecording}
-                className="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 rounded-full font-semibold text-white transition-colors shadow-lg"
-              >
-                <Square size={18} fill="white" />
-                <span>STOP</span>
-              </button>
+              <div className="flex items-center gap-4">
+                <div className="text-white font-mono text-2xl font-bold">
+                  {formatTime(timeRemaining)}
+                </div>
+                <button
+                  onClick={stopRecording}
+                  className="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 rounded-full font-semibold text-white transition-colors shadow-lg"
+                >
+                  <Square size={18} fill="white" />
+                  <span>STOP</span>
+                </button>
+              </div>
             </div>
           ) : (
             <div className="p-6 bg-black/60 backdrop-blur-md rounded-2xl border border-white/20">

@@ -31,9 +31,8 @@ export function Navigation() {
     
     const menuItems = user?.role === 'admin' 
       ? [
-          { name: 'My Space', href: '/dashboard' },
+          { name: 'Dashboard', href: '/dashboard' },
           { name: 'Reports', href: '/history' },
-          { name: 'Growth Tracker', href: '/growth' },
         ]
       : [
           { name: 'Welcome', href: '/welcome' },

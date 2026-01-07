@@ -6,10 +6,17 @@ import logging
 import os
 from pathlib import Path
 import asyncio
+import warnings
+
+# Suppress librosa deprecation warnings for cleaner logs
+warnings.filterwarnings("ignore", category=FutureWarning, module="librosa")
+warnings.filterwarnings("ignore", message=".*pkg_resources.*", category=UserWarning)
 
 logger = logging.getLogger(__name__)
 
 WHISPER_MODEL = None
+SENTIMENT_ANALYZER = None
+EMOTION_ANALYZER = None
 
 def init_whisper():
     global WHISPER_MODEL
@@ -21,6 +28,39 @@ def init_whisper():
         except Exception as e:
             logger.error(f"Failed to load Whisper model: {e}")
             raise
+
+def init_sentiment_models():
+    """Initialize sentiment and emotion analysis models on startup"""
+    global SENTIMENT_ANALYZER, EMOTION_ANALYZER
+    
+    if SENTIMENT_ANALYZER is None:
+        try:
+            from transformers import pipeline
+            logger.info("🔄 Loading sentiment analysis model (DistilBERT)...")
+            SENTIMENT_ANALYZER = pipeline(
+                "sentiment-analysis",
+                model="distilbert-base-uncased-finetuned-sst-2-english",
+                device=-1  # Use CPU (-1) or GPU (0, 1, etc.)
+            )
+            logger.info("✅ Sentiment analysis model loaded successfully (DistilBERT)")
+        except Exception as e:
+            logger.warning(f"⚠️ Failed to load sentiment model, using fallback: {e}")
+            SENTIMENT_ANALYZER = None
+    
+    if EMOTION_ANALYZER is None:
+        try:
+            from transformers import pipeline
+            logger.info("🔄 Loading emotion detection model (DistilRoBERTa)...")
+            EMOTION_ANALYZER = pipeline(
+                "text-classification",
+                model="j-hartmann/emotion-english-distilroberta-base",
+                device=-1,
+                top_k=None  # Return all emotions with scores
+            )
+            logger.info("✅ Emotion detection model loaded successfully (7 emotions)")
+        except Exception as e:
+            logger.warning(f"⚠️ Failed to load emotion model: {e}")
+            EMOTION_ANALYZER = None
 
 async def analyze_audio(video_path: str) -> Dict[str, Any]:
     """
@@ -73,7 +113,32 @@ async def analyze_audio(video_path: str) -> Dict[str, Any]:
                     pauses += 1
         
         try:
-            audio, sr = librosa.load(video_path, sr=16000, duration=60)
+            # Suppress librosa warnings for cleaner logs
+            import warnings
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=FutureWarning)
+                warnings.filterwarnings("ignore", category=UserWarning)
+                warnings.filterwarnings("ignore", message="PySoundFile failed")
+                warnings.filterwarnings("ignore", message=".*audioread.*")
+                
+                # Try to load audio - librosa will automatically use audioread if soundfile fails
+                # Use 'scipy' resampling type if resampy is not available
+                try:
+                    audio, sr = librosa.load(
+                        video_path, 
+                        sr=16000, 
+                        duration=60,
+                        res_type='kaiser_best'  # Better quality resampling (requires resampy)
+                    )
+                except (ImportError, ValueError) as resampy_error:
+                    # Fallback to scipy resampling if resampy is not available
+                    logger.debug(f"resampy not available, using scipy resampling: {resampy_error}")
+                    audio, sr = librosa.load(
+                        video_path, 
+                        sr=16000, 
+                        duration=60,
+                        res_type='scipy'  # Fallback resampling method
+                    )
             
             rms = librosa.feature.rms(y=audio)[0]
             voice_energy = float(np.mean(rms))
@@ -92,9 +157,11 @@ async def analyze_audio(video_path: str) -> Dict[str, Any]:
             voice_energy = 0
             pitch_variance = 0
         
-        sentiment = analyze_sentiment(transcript)
+        # Analyze sentiment and emotions using transformer models
+        sentiment_result = analyze_sentiment(transcript)
+        emotion_result = analyze_emotions(transcript)
         
-        logger.info(f"✅ Audio analysis complete: {total_words} words, pace={speaking_pace:.1f} wpm, sentiment={sentiment}")
+        logger.info(f"✅ Audio analysis complete: {total_words} words, pace={speaking_pace:.1f} wpm, sentiment={sentiment_result.get('sentiment', 'neutral')}")
         
         return {
             "transcript": transcript,
@@ -103,7 +170,10 @@ async def analyze_audio(video_path: str) -> Dict[str, Any]:
             "voice_energy": round(voice_energy, 3),
             "pitch_variance": round(pitch_variance, 2),
             "pauses_count": pauses,
-            "sentiment": sentiment,
+            "sentiment": sentiment_result.get("sentiment", "neutral"),
+            "sentiment_confidence": sentiment_result.get("confidence", 0.5),
+            "emotions": emotion_result.get("emotions", {}),
+            "dominant_emotion": emotion_result.get("dominant_emotion", "neutral"),
             "duration_seconds": round(duration, 2),
             "has_audio": len(transcript) > 0
         }
@@ -118,47 +188,190 @@ async def analyze_audio(video_path: str) -> Dict[str, Any]:
             "pitch_variance": 0,
             "pauses_count": 0,
             "sentiment": "neutral",
+            "sentiment_confidence": 0.5,
+            "emotions": {},
+            "dominant_emotion": "neutral",
             "duration_seconds": 0,
             "has_audio": False,
             "error": str(e)
         }
 
-def analyze_sentiment(text: str) -> str:
+def analyze_sentiment(text: str) -> Dict[str, Any]:
     """
-    Simple keyword-based sentiment analysis
-    (Can be replaced with proper NLP model like BERT)
+    Advanced sentiment analysis using pre-trained transformer model (DistilBERT)
+    Falls back to keyword-based if model not available
     
     Args:
         text: Transcript text
     
     Returns:
-        "positive", "negative", or "neutral"
+        Dictionary with sentiment, confidence, and label
     """
-    if not text:
-        return "neutral"
+    if not text or len(text.strip()) < 3:
+        return {
+            "sentiment": "neutral",
+            "confidence": 0.5,
+            "label": "NEUTRAL",
+            "method": "fallback"
+        }
     
+    # Try transformer model first
+    global SENTIMENT_ANALYZER
+    if SENTIMENT_ANALYZER is None:
+        init_sentiment_models()
+    
+    if SENTIMENT_ANALYZER is not None:
+        try:
+            # Truncate to model's max length (512 tokens)
+            text_truncated = text[:512] if len(text) > 512 else text
+            
+            result = SENTIMENT_ANALYZER(text_truncated)[0]
+            
+            # Map model output to our format
+            label = result['label'].upper()
+            confidence = result['score']
+            
+            # Convert LABEL to sentiment (POSITIVE/NEGATIVE -> positive/negative)
+            sentiment = "positive" if "POSITIVE" in label else "negative"
+            
+            # If confidence is low, treat as neutral
+            if confidence < 0.6:
+                sentiment = "neutral"
+            
+            return {
+                "sentiment": sentiment,
+                "confidence": round(confidence, 3),
+                "label": label,
+                "method": "transformer"
+            }
+        except Exception as e:
+            logger.warning(f"Transformer sentiment analysis failed: {e}, using fallback")
+    
+    # Fallback to keyword-based analysis
+    return analyze_sentiment_keyword(text)
+
+def analyze_sentiment_keyword(text: str) -> Dict[str, Any]:
+    """
+    Fallback keyword-based sentiment analysis
+    """
     positive_words = [
         "good", "great", "excited", "happy", "productive", "accomplished", 
         "progress", "excellent", "amazing", "love", "enjoy", "smooth", 
-        "successful", "confident", "motivated", "energized", "focused"
+        "successful", "confident", "motivated", "energized", "focused",
+        "wonderful", "fantastic", "pleased", "satisfied", "optimistic"
     ]
     
     negative_words = [
         "stressed", "tired", "blocked", "frustrated", "difficult", "problem", 
         "issue", "confused", "stuck", "worried", "anxious", "overwhelmed",
-        "exhausted", "struggling", "concerned", "challenging", "hard"
+        "exhausted", "struggling", "concerned", "challenging", "hard",
+        "terrible", "awful", "disappointed", "failing", "stuck"
     ]
     
     text_lower = text.lower()
     positive_count = sum(1 for word in positive_words if word in text_lower)
     negative_count = sum(1 for word in negative_words if word in text_lower)
     
-    if positive_count > negative_count + 1:
-        return "positive"
-    elif negative_count > positive_count + 1:
-        return "negative"
+    total_matches = positive_count + negative_count
+    if total_matches == 0:
+        sentiment = "neutral"
+        confidence = 0.5
+    elif positive_count > negative_count:
+        sentiment = "positive"
+        confidence = min(0.9, 0.5 + (positive_count / max(total_matches, 1)) * 0.4)
+    elif negative_count > positive_count:
+        sentiment = "negative"
+        confidence = min(0.9, 0.5 + (negative_count / max(total_matches, 1)) * 0.4)
     else:
-        return "neutral"
+        sentiment = "neutral"
+        confidence = 0.5
+    
+    return {
+        "sentiment": sentiment,
+        "confidence": round(confidence, 3),
+        "label": sentiment.upper(),
+        "method": "keyword"
+    }
+
+def analyze_emotions(text: str) -> Dict[str, Any]:
+    """
+    Analyze emotions in text using pre-trained emotion detection model
+    Detects: joy, sadness, anger, fear, surprise, disgust, neutral
+    
+    Args:
+        text: Transcript text
+    
+    Returns:
+        Dictionary with emotions, scores, and dominant emotion
+    """
+    if not text or len(text.strip()) < 3:
+        return {
+            "emotions": {},
+            "dominant_emotion": "neutral",
+            "method": "fallback"
+        }
+    
+    global EMOTION_ANALYZER
+    if EMOTION_ANALYZER is None:
+        init_sentiment_models()
+    
+    if EMOTION_ANALYZER is not None:
+        try:
+            # Truncate to model's max length
+            text_truncated = text[:512] if len(text) > 512 else text
+            
+            results = EMOTION_ANALYZER(text_truncated)
+            
+            # The pipeline returns a list of dictionaries when top_k=None
+            # Each dict has 'label' and 'score' keys
+            emotions = {}
+            
+            if isinstance(results, list) and len(results) > 0:
+                # Process each result
+                for item in results:
+                    if isinstance(item, dict):
+                        label = item.get('label', '').lower()
+                        score = item.get('score', 0.0)
+                        if label:
+                            emotions[label] = round(score, 3)
+                    elif isinstance(item, list) and len(item) > 0:
+                        # Handle nested list format
+                        if isinstance(item[0], dict):
+                            label = item[0].get('label', '').lower()
+                            score = item[0].get('score', 0.0)
+                            if label:
+                                emotions[label] = round(score, 3)
+            elif isinstance(results, dict):
+                # Single result (unexpected with top_k=None, but handle it)
+                label = results.get('label', '').lower()
+                score = results.get('score', 0.0)
+                if label:
+                    emotions[label] = round(score, 3)
+            else:
+                logger.warning(f"Unexpected emotion results format: {type(results)}")
+                raise ValueError(f"Unexpected results type: {type(results)}")
+            
+            # Find dominant emotion
+            if emotions:
+                dominant_emotion = max(emotions.items(), key=lambda x: x[1])[0]
+            else:
+                dominant_emotion = "neutral"
+                emotions = {"neutral": 1.0}
+            
+            return {
+                "emotions": emotions,
+                "dominant_emotion": dominant_emotion,
+                "method": "transformer"
+            }
+        except Exception as e:
+            logger.warning(f"Emotion analysis failed: {e}, using fallback", exc_info=True)
+    
+    # Fallback: return neutral
+    return {
+        "emotions": {"neutral": 1.0},
+        "dominant_emotion": "neutral",
+        "method": "fallback"
+    }
 
 def get_sentiment_emoji(sentiment: str) -> str:
     if sentiment == "positive":

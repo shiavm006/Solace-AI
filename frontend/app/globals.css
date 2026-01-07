@@ -9,6 +9,13 @@
   --primary: #6366f1;
   --primary-foreground: #ffffff;
   --secondary: #f3f4f6;
+  --secondary-foreground: #171717;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --accent: #f3f4f6;
+  --accent-foreground: #171717;
+  --input: #e5e7eb;
+  --ring: #6366f1;
   --card: #ffffff;
 }
 
@@ -21,9 +28,18 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --color-card: var(--card);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-brand-purple: #8b5cf6;
+  --color-brand-blue: #3b82f6;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -36,12 +52,21 @@
     --primary: #818cf8;
     --primary-foreground: #ffffff;
     --secondary: #1f2937;
+    --secondary-foreground: #ededed;
+    --destructive: #dc2626;
+    --destructive-foreground: #ffffff;
+    --accent: #1f2937;
+    --accent-foreground: #ededed;
+    --input: #374151;
+    --ring: #818cf8;
     --card: #1f2937;
   }
 }
 
 html, body {
   height: 100%;
+  margin: 0;
+  padding: 0;
   overflow-x: hidden;
 }
 
@@ -49,6 +74,34 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+  .glass-nav {
+    background: rgba(11, 11, 12, 0.8);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-pill {
+    background: rgba(255, 255, 255, 0.05);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 100px;
+  }
+
+  .aurora-glow {
+    position: absolute;
+    filter: blur(100px);
+    opacity: 0.4;
+    z-index: -1;
+  }
+
+  .font-noe-display {
+    font-family: "Noe Display", "Times New Roman", serif;
+  }
 }
 
 /* Animation keyframes */

@@ -7,6 +7,7 @@ import CheckInOverlay from "@/components/CheckInOverlay";
 import { getToken, getCurrentUser, removeToken } from "@/lib/api";
 import type { User } from "@/lib/api";
 import { format } from "date-fns";
+import { LogOut } from "lucide-react";
 
 interface LatestCheckIn {
   id: string;
@@ -29,6 +30,9 @@ interface LatestCheckIn {
       pitch_variance: number;
       pauses_count: number;
       sentiment: string;
+      sentiment_confidence?: number;
+      emotions?: Record<string, number>;
+      dominant_emotion?: string;
       duration_seconds: number;
       has_audio: boolean;
     };
@@ -150,47 +154,73 @@ export default function Welcome() {
   return (
     <>
       <div className="min-h-screen text-white relative bg-black overflow-y-auto">
-        <div className="absolute inset-0 m-6 border-2 border-emerald-500">
-          {}
-          <div className="absolute -top-1 -left-1 w-3 h-3 bg-emerald-500"></div>
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500"></div>
-          <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-emerald-500"></div>
-          <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500"></div>
-          
+        <div className="absolute inset-0 m-6">
           <div className="absolute inset-0 z-10 overflow-y-auto">
+            {/* Logout button in top right */}
+            <div className="absolute top-2 right-8 z-20">
+              <button
+                onClick={() => {
+                  removeToken();
+                  router.push("/login");
+                }}
+                className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg border border-white/20 transition-all duration-200 hover:border-white/40 group"
+                title="Logout"
+              >
+                <LogOut className="w-5 h-5 text-white group-hover:text-red-400 transition-colors" />
+              </button>
+            </div>
+            
             <div className="flex flex-col items-center justify-start gap-8 p-8 min-h-full">
               <div className="flex flex-col items-center gap-8 mt-12">
                 <SplitText
-                  text="Hey… I'm really glad you're here."
+                  text={`Welcome ${user.first_name}`}
                   delay={50}
                   duration={1.25}
                   ease="bounce.out"
                   splitType="chars"
-                  className="text-4xl font-bold text-white"
+                  className="text-6xl md:text-7xl font-noe-display font-light text-white"
                   tag="h1"
                   onLetterAnimationComplete={handleAnimationComplete}
                 />
-                <div className="flex gap-4">
-                  <button
-                    onClick={handleCheckIn}
-                    className="px-8 py-4 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition-colors duration-200 shadow-lg hover:shadow-emerald-500/50"
-                  >
-                    Check In
-                  </button>
-                  {latestCheckIn && (
-                    <button
-                      onClick={() => setShowReport(!showReport)}
-                      className="px-8 py-4 bg-white/10 backdrop-blur text-white font-semibold rounded-lg hover:bg-white/20 transition-colors duration-200 border border-emerald-500/50"
-                    >
-                      {showReport ? "Hide Report" : "View Latest Report"}
-                    </button>
-                  )}
+              </div>
+
+              {/* Check-in Card - Centered in middle */}
+              <div className="w-full flex justify-center items-center mt-12">
+                <div className="w-full max-w-2xl">
+                  {/* Check-in Card */}
+                  <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-emerald-500/30 p-8 space-y-6">
+                    <div className="space-y-3">
+                      <h3 className="text-3xl font-semibold text-white font-noe-display">
+                        Daily Check-in
+                      </h3>
+                      <p className="text-base text-white/70 leading-relaxed">
+                        Complete your today's check-in before the day ends to track your wellbeing and get insights.
+                      </p>
+                    </div>
+                    <div className="flex gap-4">
+                      <button
+                        onClick={handleCheckIn}
+                        className="flex-1 px-8 py-4 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition-colors duration-200 shadow-lg hover:shadow-emerald-500/50 text-lg"
+                      >
+                        Check In
+                      </button>
+                      {latestCheckIn && (
+                        <button
+                          onClick={() => setShowReport(!showReport)}
+                          className="flex-1 px-8 py-4 bg-white/10 backdrop-blur text-white font-semibold rounded-lg hover:bg-white/20 transition-colors duration-200 border border-emerald-500/50 text-lg"
+                        >
+                          {showReport ? "Hide Report" : "View Latest Report"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {}
-              {showReport && latestCheckIn && (
-                <div className="w-full max-w-5xl mt-8 space-y-6 animate-in fade-in duration-500">
+              {/* Report Section - Full Width */}
+              <div className="w-full mt-12">
+                {showReport && latestCheckIn && (
+                  <div className="w-full max-w-5xl mx-auto space-y-6 animate-in fade-in duration-500">
                   {}
                   <div className="bg-white/5 backdrop-blur rounded-xl border border-emerald-500/30 p-6">
                     <div className="flex items-center justify-between mb-4">
@@ -297,7 +327,7 @@ export default function Welcome() {
                           <h3 className="text-xl font-bold text-purple-500">🎤 Audio Analysis</h3>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                           <div className="bg-black/40 rounded-lg p-4 border border-white/10">
                             <p className="text-sm text-gray-400">Words Spoken</p>
                             <p className="text-2xl font-bold text-white">{latestCheckIn.metrics.audio.word_count}</p>
@@ -313,12 +343,44 @@ export default function Welcome() {
                               {latestCheckIn.metrics.audio.sentiment === 'negative' && <span className="text-red-500">😟 Negative</span>}
                               {latestCheckIn.metrics.audio.sentiment === 'neutral' && <span className="text-gray-400">😐 Neutral</span>}
                             </p>
+                            {latestCheckIn.metrics.audio.sentiment_confidence && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                {(latestCheckIn.metrics.audio.sentiment_confidence * 100).toFixed(0)}% confidence
+                              </p>
+                            )}
                           </div>
+                          {latestCheckIn.metrics.audio.dominant_emotion && (
+                            <div className="bg-black/40 rounded-lg p-4 border border-white/10">
+                              <p className="text-sm text-gray-400">Dominant Emotion</p>
+                              <p className="text-2xl font-bold capitalize text-purple-400">
+                                {latestCheckIn.metrics.audio.dominant_emotion}
+                              </p>
+                            </div>
+                          )}
                           <div className="bg-black/40 rounded-lg p-4 border border-white/10">
                             <p className="text-sm text-gray-400">Pauses</p>
                             <p className="text-2xl font-bold text-white">{latestCheckIn.metrics.audio.pauses_count}</p>
                           </div>
                         </div>
+                        
+                        {latestCheckIn.metrics.audio.emotions && Object.keys(latestCheckIn.metrics.audio.emotions).length > 0 && (
+                          <div className="bg-black/40 rounded-lg p-4 border border-white/10 mb-4">
+                            <p className="text-sm text-gray-400 mb-2">Emotion Breakdown:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {Object.entries(latestCheckIn.metrics.audio.emotions)
+                                .sort((a, b) => b[1] - a[1])
+                                .slice(0, 5)
+                                .map(([emotion, score]) => (
+                                  <span 
+                                    key={emotion}
+                                    className="px-3 py-1 bg-purple-500/20 rounded-full text-sm text-purple-300"
+                                  >
+                                    {emotion}: {(score as number * 100).toFixed(0)}%
+                                  </span>
+                                ))}
+                            </div>
+                          </div>
+                        )}
                         
                         {latestCheckIn.metrics.audio.transcript && (
                           <div className="bg-black/40 rounded-lg p-4 border border-white/10">
@@ -372,19 +434,20 @@ export default function Welcome() {
                       </button>
                     </div>
                   </div>
-                </div>
-              )}
+                    </div>
+                  )}
 
-              {}
-              {!latestCheckIn && !showCheckIn && (
-                <div className="w-full max-w-2xl mt-8 bg-white/5 backdrop-blur rounded-xl border border-emerald-500/30 p-8 text-center">
-                  <svg className="w-16 h-16 text-emerald-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <h3 className="text-xl font-bold text-white mb-2">No Reports Yet</h3>
-                  <p className="text-gray-400 mb-4">Complete your first check-in to generate your AI-powered wellness report!</p>
-                </div>
-              )}
+                  {}
+                  {!latestCheckIn && !showCheckIn && (
+                    <div className="w-full bg-white/5 backdrop-blur rounded-xl border border-emerald-500/30 p-8 text-center">
+                      <svg className="w-16 h-16 text-emerald-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <h3 className="text-xl font-bold text-white mb-2">No Reports Yet</h3>
+                      <p className="text-gray-400 mb-4">Complete your first check-in to generate your AI-powered wellness report!</p>
+                    </div>
+                  )}
+              </div>
             </div>
           </div>
         </div>
