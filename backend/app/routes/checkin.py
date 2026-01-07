@@ -146,12 +146,15 @@ async def get_user_from_token_or_header(
         updated_at=user.get("updated_at", datetime.utcnow())
     )
 
-async def process_video_task(task_id: str, video_path: str, emp_id: str, emp_email: str, notes: Optional[str]):
+async def process_video_task(task_id: str, video_path: str, emp_id: str, emp_email: str, notes: Optional[str], checkin_timestamp: datetime):
     """
     Background task to process video
     - Extracts metrics using ML pipeline
     - Generates PDF report
     - Deletes video immediately after successful processing
+    
+    Args:
+        checkin_timestamp: The exact timestamp when the user submitted the check-in
     """
     tasks_collection = get_tasks_collection()
     checkins_collection = get_checkins_collection()
@@ -239,12 +242,12 @@ async def process_video_task(task_id: str, video_path: str, emp_id: str, emp_ema
             "task_id": task_id,
             "video_path": None,
             "status": "completed",
-            "date": datetime.utcnow(),
+            "date": checkin_timestamp,  # Use the exact timestamp when user submitted check-in
             "notes": notes,
             "metrics": combined_metrics,
             "insights": insights_result,  # Store all qualitative insights sections
             "pdf_url": None,
-            "created_at": datetime.utcnow(),
+            "created_at": checkin_timestamp,  # Use the exact timestamp when user submitted check-in
             "updated_at": datetime.utcnow()
         }
         
@@ -385,6 +388,9 @@ async def upload_daily_checkin(
             detail=f"Failed to save video: {str(e)}"
         )
     
+    # Capture the exact timestamp when user submits check-in
+    checkin_timestamp = datetime.utcnow()
+    
     tasks_collection = get_tasks_collection()
     task_doc = {
         "task_id": task_id,
@@ -394,8 +400,8 @@ async def upload_daily_checkin(
         "progress": 0,
         "message": "Video uploaded, queued for processing",
         "result": None,
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
+        "created_at": checkin_timestamp,
+        "updated_at": checkin_timestamp
     }
     
     await tasks_collection.insert_one(task_doc)
@@ -407,7 +413,8 @@ async def upload_daily_checkin(
         str(video_path),
         current_user.id,
         current_user.email,
-        combined_notes.strip()
+        combined_notes.strip(),
+        checkin_timestamp  # Pass the exact check-in timestamp to background task
     )
     
     return CheckInResponse(
