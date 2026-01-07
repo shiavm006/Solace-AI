@@ -1,0 +1,70 @@
+# ===========================================
+# Solace AI Backend - Docker Ignore
+# ===========================================
+
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Environment files (secrets)
+.env
+.env.*
+*.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+
+# Local storage (will be mounted as volumes)
+storage/
+*.mp4
+*.webm
+*.mov
+*.pdf
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
+# Logs
+*.log
+logs/
+
+# macOS
+.DS_Store
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+

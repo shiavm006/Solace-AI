@@ -1,46 +1,51 @@
+# ===========================================
+# Solace AI Backend - Production Dependencies
+# ===========================================
+# Optimized for deployment - pinned versions for reproducibility
+
+# ---- Core Framework ----
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
 slowapi==0.1.9
 
+# ---- Data Validation & Settings ----
 pydantic==2.5.3
 pydantic-settings==2.1.0
 python-dotenv==1.0.0
 python-multipart==0.0.6
+email-validator==2.1.0
 
+# ---- Authentication & Security ----
 python-jose[cryptography]==3.3.0
-bcrypt==5.0.0
+bcrypt==4.1.2
 
+# ---- Database (MongoDB) ----
 pymongo==4.6.1
 motor==3.3.2
 
+# ---- HTTP Client ----
 httpx==0.26.0
-redis==5.0.1
 
-pytest==7.4.4
-pytest-asyncio==0.23.3
+# ---- ML: Transformers (Sentiment & Emotion Analysis) ----
+# Using CPU-only torch for smaller image size in deployment
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.0+cpu
+transformers==4.37.2
 
-email-validator
-
-# ML Dependencies
-transformers
-torch
-textblob
-
-# Video Analysis
-opencv-python==4.12.0.88
+# ---- Video Analysis (MediaPipe + OpenCV) ----
+opencv-python-headless==4.9.0.80
 mediapipe==0.10.9
-numpy==2.2.6
+numpy>=1.24.0,<2.0.0
 
-# Audio Analysis (Whisper + Audio Processing)
+# ---- Audio Analysis (Whisper + Audio Processing) ----
 openai-whisper==20231117
 pydub==0.25.1
 librosa==0.10.1
 soundfile==0.12.1
 resampy==0.4.2
-ffmpeg-python==0.2.0
 
-# PDF Generation
-reportlab==4.4.7
+# ---- PDF Generation ----
+reportlab==4.1.0
 
-# LLM/AI (Groq - free, fast)
-# httpx already installed above
+# ---- Production Server ----
+gunicorn==21.2.0
