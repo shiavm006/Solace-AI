@@ -105,6 +105,15 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
+type TooltipPayload = {
+  name?: string
+  value?: number | string
+  dataKey?: string
+  color?: string
+  payload?: Record<string, unknown>
+  fill?: string
+}
+
 function ChartTooltipContent({
   active,
   payload,
@@ -119,13 +128,24 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
-}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+}: Omit<React.ComponentProps<typeof RechartsPrimitive.Tooltip>, "content"> &
   React.ComponentProps<"div"> & {
+    active?: boolean
+    payload?: TooltipPayload[]
+    label?: string | number
     hideLabel?: boolean
     hideIndicator?: boolean
     indicator?: "line" | "dot" | "dashed"
     nameKey?: string
     labelKey?: string
+    formatter?: (
+      value: number | string,
+      name: string,
+      item: TooltipPayload,
+      index: number,
+      payload: Record<string, unknown>
+    ) => React.ReactNode
+    labelFormatter?: (label: string | number, payload: TooltipPayload[]) => React.ReactNode
   }) {
   const { config } = useChart()
 
@@ -142,10 +162,10 @@ function ChartTooltipContent({
         ? config[label as keyof typeof config]?.label || label
         : itemConfig?.label
 
-    if (labelFormatter) {
+    if (labelFormatter && payload) {
       return (
         <div className={cn("font-medium", labelClassName)}>
-          {labelFormatter(value, payload)}
+          {labelFormatter(value as string | number, payload)}
         </div>
       )
     }
@@ -180,10 +200,10 @@ function ChartTooltipContent({
     >
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
-        {payload.map((item, index) => {
+        {payload.map((item: TooltipPayload, index: number) => {
           const key = `${nameKey || item.name || item.dataKey || "value"}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
-          const indicatorColor = color || item.payload.fill || item.color
+          const indicatorColor = color || (item.payload as { fill?: string })?.fill || item.color
 
           return (
             <div
@@ -194,7 +214,7 @@ function ChartTooltipContent({
               )}
             >
               {formatter && item?.value !== undefined && item.name ? (
-                formatter(item.value, item.name, item, index, item.payload)
+                formatter(item.value, item.name, item, index, item.payload || {})
               ) : (
                 <>
                   {itemConfig?.icon ? (
@@ -251,20 +271,28 @@ function ChartTooltipContent({
 
 const ChartLegend = RechartsPrimitive.Legend
 
+type LegendPayload = {
+  value?: string
+  dataKey?: string
+  color?: string
+  type?: string
+}
+
 function ChartLegendContent({
   className,
   hideIcon = false,
   payload,
   verticalAlign = "bottom",
   nameKey,
-}: React.ComponentProps<"div"> &
-  Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
-    hideIcon?: boolean
-    nameKey?: string
-  }) {
+}: React.ComponentProps<"div"> & {
+  hideIcon?: boolean
+  payload?: LegendPayload[]
+  verticalAlign?: "top" | "bottom"
+  nameKey?: string
+}) {
   const { config } = useChart()
 
-  if (!payload?.length) {
+  if (!payload || !Array.isArray(payload) || payload.length === 0) {
     return null
   }
 
@@ -276,7 +304,7 @@ function ChartLegendContent({
         className
       )}
     >
-      {payload.map((item) => {
+      {payload.map((item: LegendPayload) => {
         const key = `${nameKey || item.dataKey || "value"}`
         const itemConfig = getPayloadConfigFromPayload(config, item, key)
 

@@ -83,10 +83,6 @@ export default function Login() {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    console.log("Continue with Google clicked");
-  };
-
   const handleResetPassword = () => {
     console.log("Reset Password clicked");
   };
@@ -120,7 +116,6 @@ export default function Login() {
         testimonials={[]}
         onSignIn={handleSignIn}
         onSignUp={handleSignUp}
-        onGoogleSignIn={handleGoogleSignIn}
         onResetPassword={handleResetPassword}
         onCreateAccount={handleCreateAccount}
         onSwitchToLogin={handleSwitchToLogin}

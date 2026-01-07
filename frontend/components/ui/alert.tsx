@@ -24,7 +24,6 @@ const fadeInBlur = {
     filter: "blur(0px)",
     y: 0,
     rotate: 0,
-    transition: { duration: 0.2, ease: "easeInOut" },
   },
 };
 
@@ -43,19 +42,20 @@ const Alert: React.FC<AlertProps> = ({
       variants={fadeInBlur}
       initial="initial"
       animate="animate"
+      transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
       whileHover={{
         scale: 1.01,
         rotate: 1,
         transition: {
           duration: 0.2,
-          ease: "easeInOut",
+          ease: [0.4, 0, 0.2, 1],
         },
       }}
       whileTap={{
         scale: 0.99,
         transition: {
           duration: 0.2,
-          ease: "easeInOut",
+          ease: [0.4, 0, 0.2, 1],
         },
       }}
       onClick={onClick}
