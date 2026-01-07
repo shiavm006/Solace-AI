@@ -6,6 +6,7 @@ from app.database import init_database
 from app.middleware.logging import RequestLoggingMiddleware
 from datetime import datetime
 import logging
+import os
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -36,21 +37,9 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database connection and ML models on startup"""
+    """Initialize database connection on startup. ML models are loaded lazily on first use."""
     await init_database()
-    
-    # Initialize ML models in background (they're slow to load)
-    from app.services.audio_ml import init_whisper, init_sentiment_models
-    import asyncio
-    loop = asyncio.get_event_loop()
-    
-    # Load Whisper model
-    loop.run_in_executor(None, init_whisper)
-    logger.info("Whisper model initialization started in background")
-    
-    # Load sentiment and emotion models
-    loop.run_in_executor(None, init_sentiment_models)
-    logger.info("Sentiment and emotion models initialization started in background")
+    logger.info("Database initialized. ML models will be loaded on first use (lazy loading).")
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(checkin.router, prefix="/api/checkin", tags=["Check-ins"])
@@ -65,16 +54,18 @@ async def health_check():
     Health check endpoint that verifies:
     - API is running
     - Database connection is alive
-    - Whisper model is loaded
+    - ML models status (lazy loaded)
     """
     from app.database import get_database
-    from app.services.audio_ml import WHISPER_MODEL
+    from app.services.audio_ml import WHISPER_MODEL, SENTIMENT_ANALYZER, EMOTION_ANALYZER
     
     health_status = {
         "status": "healthy",
         "api": "running",
         "database": "unknown",
-        "whisper_model": "unknown",
+        "whisper_model": "not loaded (lazy)",
+        "sentiment_model": "not loaded (lazy)",
+        "emotion_model": "not loaded (lazy)",
         "timestamp": datetime.utcnow().isoformat()
     }
     
@@ -86,26 +77,14 @@ async def health_check():
         health_status["database"] = f"error: {str(e)}"
         health_status["status"] = "degraded"
     
+    # Report model status (they load lazily on first request)
     if WHISPER_MODEL is not None:
         health_status["whisper_model"] = "loaded"
-    else:
-        health_status["whisper_model"] = "not loaded"
-        health_status["status"] = "degraded"
-    
-    # Check sentiment and emotion models
-    from app.services.audio_ml import SENTIMENT_ANALYZER, EMOTION_ANALYZER
     
     if SENTIMENT_ANALYZER is not None:
         health_status["sentiment_model"] = "loaded"
-    else:
-        health_status["sentiment_model"] = "not loaded"
-        health_status["status"] = "degraded"
     
     if EMOTION_ANALYZER is not None:
         health_status["emotion_model"] = "loaded"
-    else:
-        health_status["emotion_model"] = "not loaded"
-        health_status["status"] = "degraded"
     
     return health_status
-
