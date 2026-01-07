@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Square } from 'lucide-react';
 import Alert from '@/components/ui/alert';
+import { config } from '@/lib/config';
 
 interface CheckInOverlayProps {
   onClose: () => void;
@@ -61,7 +62,6 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
       });
 
       chunksRef.current = [];
-      // Clear any previous messages
       setError(null);
       setSuccess(null);
       
@@ -78,13 +78,11 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
       mediaRecorder.start();
       mediaRecorderRef.current = mediaRecorder;
       setIsRecording(true);
-      setTimeRemaining(120); // Reset to 2 minutes
+      setTimeRemaining(120);
 
-      // Start countdown timer
       timerIntervalRef.current = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
-            // Auto-stop recording when timer reaches 0
             if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
               mediaRecorderRef.current.stop();
               setIsRecording(false);
@@ -108,7 +106,6 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
     }
-    // Clear timer
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
@@ -130,7 +127,7 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
       formData.append('video', blob, 'checkin.webm');
       formData.append('notes', 'Daily check-in');
 
-      const response = await fetch('http://localhost:8000/api/checkin/daily-checkin', {
+      const response = await fetch(`${config.apiUrl}/api/checkin/daily-checkin`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -177,14 +174,12 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
     }
-    // Clear timer on close
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
     }
     onClose();
   };
 
-  // Format time as MM:SS
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -193,7 +188,6 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black">
-      {}
       <video
         ref={videoRef}
         autoPlay
@@ -202,11 +196,8 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
         className="absolute inset-0 w-full h-full object-cover scale-x-[-1]"
       />
 
-      {}
       <div className="absolute inset-0 flex flex-col items-center justify-between p-8 bg-gradient-to-b from-black/40 via-transparent to-black/60">
-        {}
         <div className="w-full max-w-2xl text-center mt-12">
-          {}
           <div className="bg-black/50 backdrop-blur-md rounded-2xl p-6 border border-white/10">
             <p className="text-xl text-white font-medium">
               📢 Tell us about your day
@@ -217,7 +208,6 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
           </div>
         </div>
 
-        {}
         <div className="w-full max-w-md">
           {error && (
             <div className="mb-4">
@@ -238,13 +228,11 @@ export default function CheckInOverlay({ onClose }: CheckInOverlayProps) {
             </div>
           ) : isRecording ? (
             <div className="flex items-center justify-between p-6 bg-black/60 backdrop-blur-md rounded-2xl border border-red-500/50">
-              {}
               <div className="flex items-center gap-3">
                 <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
                 <span className="text-white font-semibold">Recording...</span>
               </div>
 
-              {}
               <div className="flex items-center gap-4">
                 <div className="text-white font-mono text-2xl font-bold">
                   {formatTime(timeRemaining)}

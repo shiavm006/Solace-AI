@@ -25,7 +25,6 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-6 lg:px-8 max-w-[1280px]">
         <div className="flex items-center justify-between">
-          {/* Left: Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="block">
               <span className="font-noe-display text-white text-[22px] tracking-[0.08em]">
@@ -34,10 +33,8 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Center: Navigation Links (currently empty, reserved for future items) */}
           <div className="hidden lg:flex items-center space-x-12" />
 
-          {/* Right: Actions (Log in as white button aligned to the far right) */}
           <div className="flex items-center space-x-8">
             <Link
               href="/login"
@@ -46,7 +43,6 @@ const Navbar = () => {
               Log In
             </Link>
 
-            {/* Mobile Menu Button */}
             <button
               className="lg:hidden text-white p-1"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -56,7 +52,6 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile menu */}
         {isMenuOpen && (
           <div className="lg:hidden absolute top-full left-0 right-0 bg-[#0b0b0c] border-b border-white/10 px-6 py-8 flex flex-col space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
             <div className="pt-2 flex flex-col space-y-4">

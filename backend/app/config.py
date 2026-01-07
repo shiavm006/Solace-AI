@@ -12,7 +12,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REMEMBER_ME_TOKEN_EXPIRE_DAYS: int = 30
     
-    CORS_ORIGINS: List[str] = ["http://localhost:3000"]
+    CORS_ORIGINS: List[str] = Field(
+        default=["http://localhost:3000"],
+        validation_alias="CORS_ORIGINS"
+    )
     
     GROQ_API_KEY: str = Field(default="")
     

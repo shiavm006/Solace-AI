@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { getToken, getCurrentUser, removeToken } from "@/lib/api";
 import type { User } from "@/lib/api";
+import { config } from "@/lib/config";
 
 interface CheckIn {
   id: string;
@@ -36,7 +37,7 @@ export default function MyCheckIns() {
         const userData = await getCurrentUser(token);
         setUser(userData);
 
-        const response = await fetch("http://localhost:8000/api/checkin/my-checkins", {
+        const response = await fetch(`${config.apiUrl}/api/checkin/my-checkins`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -214,7 +215,7 @@ export default function MyCheckIns() {
                       <button
                         onClick={() => {
                           const token = getToken();
-                          window.open(`http://localhost:8000/api/checkin/download-pdf/${checkin.id}?token=${token}`, '_blank');
+                          window.open(`${config.apiUrl}/api/checkin/download-pdf/${checkin.id}?token=${token}`, '_blank');
                         }}
                         className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center gap-2"
                         title="Download PDF Report"

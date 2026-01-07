@@ -6,6 +6,7 @@ import SplitText from "@/components/SplitText";
 import CheckInOverlay from "@/components/CheckInOverlay";
 import { getToken, getCurrentUser, removeToken } from "@/lib/api";
 import type { User } from "@/lib/api";
+import { config } from "@/lib/config";
 import { format } from "date-fns";
 import { LogOut } from "lucide-react";
 
@@ -90,7 +91,7 @@ export default function Welcome() {
 
   const fetchLatestCheckIn = async (token: string) => {
     try {
-      const response = await fetch("http://localhost:8000/api/checkin/my-checkins", {
+      const response = await fetch(`${config.apiUrl}/api/checkin/my-checkins`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -156,7 +157,6 @@ export default function Welcome() {
       <div className="min-h-screen text-white relative bg-black overflow-y-auto">
         <div className="absolute inset-0 m-6">
           <div className="absolute inset-0 z-10 overflow-y-auto">
-            {/* Logout button in top right */}
             <div className="absolute top-2 right-8 z-20">
               <button
                 onClick={() => {
@@ -184,10 +184,8 @@ export default function Welcome() {
                 />
               </div>
 
-              {/* Check-in Card - Centered in middle */}
               <div className="w-full flex justify-center items-center mt-12">
                 <div className="w-full max-w-2xl">
-                  {/* Check-in Card */}
                   <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-emerald-500/30 p-8 space-y-6">
                     <div className="space-y-3">
                       <h3 className="text-3xl font-semibold text-white font-noe-display">
@@ -217,11 +215,9 @@ export default function Welcome() {
                 </div>
               </div>
 
-              {/* Report Section - Full Width */}
               <div className="w-full mt-12">
                 {showReport && latestCheckIn && (
                   <div className="w-full max-w-5xl mx-auto space-y-6 animate-in fade-in duration-500">
-                  {}
                   <div className="bg-white/5 backdrop-blur rounded-xl border border-emerald-500/30 p-6">
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-3xl font-bold text-emerald-500">Your Latest Report</h2>
@@ -233,7 +229,7 @@ export default function Welcome() {
                           <button
                             onClick={() => {
                               const token = getToken();
-                              window.open(`http://localhost:8000/api/checkin/download-pdf/${latestCheckIn.id}?token=${token}`, '_blank');
+                              window.open(`${config.apiUrl}/api/checkin/download-pdf/${latestCheckIn.id}?token=${token}`, '_blank');
                             }}
                             className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center gap-2"
                           >
@@ -252,9 +248,7 @@ export default function Welcome() {
                       </div>
                     )}
 
-                    {}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      {}
                       <div className="bg-black/40 rounded-lg p-6 border border-white/10">
                         <div className="flex items-center gap-3 mb-3">
                           <div className={`w-12 h-12 rounded-full ${getStressBg(latestCheckIn.metrics.stress_avg)} flex items-center justify-center`}>

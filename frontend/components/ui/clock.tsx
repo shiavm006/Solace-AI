@@ -16,7 +16,6 @@ export function Clock({
   initialSecondsMode = "smooth",
 }: ClockProps) {
   const [time, setTime] = useState(initialTime)
-  // secondsMode is intentionally not given a setter, as it's meant to be static after initial render
   const [secondsMode] = useState<SecondsMode>(initialSecondsMode)
 
   const hourHandRef = useRef<HTMLDivElement>(null)
@@ -24,7 +23,6 @@ export function Clock({
   const secondHandContainerRef = useRef<HTMLDivElement>(null)
   const secondHandShadowRef = useRef<HTMLDivElement>(null)
 
-  // Log the initial secondsMode to confirm it's being received
   useEffect(() => {
     console.log(
       "Clock component mounted. Initial secondsMode prop:",
@@ -66,7 +64,6 @@ export function Clock({
     }
 
     let currentSecondsAngle = 0
-    // Log the secondsMode *inside* the function that uses it
     console.log(
       "--- updateClockHands called. Current secondsMode:",
       secondsMode

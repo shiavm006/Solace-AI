@@ -62,9 +62,6 @@ const HelixRings: React.FC<HelixRingsProps> = ({
     <group
       ref={newGroup => {
         if (newGroup) {
-          // keep reference updated
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
           groupRef.current = newGroup;
         }
       }}

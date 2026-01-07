@@ -1,6 +1,6 @@
 import { Hero } from "@/components/ui/helix-hero";
 
-export default function DemoOne() {
+export default function DemoPage() {
   return (
     <Hero
       title="Resonance in Motion"
@@ -12,10 +12,3 @@ export default function DemoOne() {
     />
   );
 }
-
-import MinimalHero from "@/components/ui/hero-minimalism";
-
-export default function DemoOne() {
-  return <MinimalHero />;
-}
-

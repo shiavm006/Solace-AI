@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { getToken, getCurrentUser, removeToken } from "@/lib/api";
 import type { User } from "@/lib/api";
+import { config } from "@/lib/config";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/line-charts-1";
 import { ChartConfig as RadarChartConfig, ChartContainer as RadarChartContainer, ChartTooltip as RadarChartTooltip, ChartTooltipContent as RadarChartTooltipContent } from "@/components/ui/radar-chart";
 import { Area, CartesianGrid, ComposedChart, Line, XAxis, YAxis, PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts";
@@ -61,8 +62,7 @@ export default function Dashboard() {
 
         setUser(userData);
 
-        // Fetch dashboard metrics
-        const response = await fetch("http://localhost:8000/api/checkin/dashboard-metrics", {
+        const response = await fetch(`${config.apiUrl}/api/checkin/dashboard-metrics`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -72,26 +72,22 @@ export default function Dashboard() {
           const data = await response.json();
           setMetrics(data);
         } else if (response.status === 401) {
-          // Token expired or invalid
           removeToken();
           router.push("/login");
           return;
         } else {
-          // Show error state instead of mock data
           console.error("Failed to fetch dashboard metrics:", response.status);
           setMetrics(null);
         }
       } catch (error: any) {
         console.error("Error fetching dashboard:", error);
         
-        // If unauthorized, redirect to login
         if (error.message === "Unauthorized" || error.message?.includes("Unauthorized")) {
           removeToken();
           router.push("/login");
           return;
         }
         
-        // Don't use mock data - show error state instead
         setMetrics(null);
       } finally {
         setLoading(false);

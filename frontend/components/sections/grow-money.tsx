@@ -27,7 +27,6 @@ const GrowMoney = () => {
               className="w-full h-auto"
             />
           </div>
-          {/* TODO: add additional investing cards to fully match original design */}
         </div>
       </div>
     </section>

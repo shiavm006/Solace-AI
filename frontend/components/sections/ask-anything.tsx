@@ -24,7 +24,6 @@ const AskAnything = () => {
           </p>
         </div>
       </div>
-      {/* TODO: add chat simulation UI to fully match original design */}
     </section>
   );
 };

@@ -56,17 +56,11 @@ export default function Hero() {
             className="group flex h-[48px] items-center justify-center bg-transparent text-white px-8 font-sans font-medium text-[14px] uppercase tracking-wider hover:bg-white hover:text-black hover:scale-[1.05] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 cursor-pointer relative z-30"
           >
             <span className="relative z-10">GET STARTED</span>
-            {/* Top border - left segment */}
             <div className="absolute top-0 left-0 h-[2px] bg-white" style={{ width: 'calc(50% - 20px)' }}></div>
-            {/* Top border - right segment */}
             <div className="absolute top-0 right-0 h-[2px] bg-white" style={{ width: 'calc(50% - 20px)' }}></div>
-            {/* Bottom border - left segment */}
             <div className="absolute bottom-0 left-0 h-[2px] bg-white" style={{ width: 'calc(50% - 20px)' }}></div>
-            {/* Bottom border - right segment */}
             <div className="absolute bottom-0 right-0 h-[2px] bg-white" style={{ width: 'calc(50% - 20px)' }}></div>
-            {/* Left border */}
             <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-white"></div>
-            {/* Right border */}
             <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-white"></div>
           </button>
         </div>
@@ -74,8 +68,6 @@ export default function Hero() {
         <p className="text-white/60 text-[1rem] md:text-[1.125rem] leading-relaxed max-w-[600px] relative z-30">
           Track stress, engagement, and burnout risk with daily video check-ins and AI-powered insights—privacy-first, always.
         </p>
-
-        {/* Removed typed text input / AI search bar and press logos */}
       </div>
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[50vh] bg-gradient-to-t from-[#0B0B0C] to-transparent z-10 pointer-events-none" />
     </section>

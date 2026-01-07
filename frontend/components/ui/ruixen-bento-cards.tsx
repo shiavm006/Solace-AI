@@ -49,7 +49,6 @@ const PlusCard: React.FC<{
       )}
     >
       <CornerPlusIcons />
-      {/* Content */}
       <div className="relative z-10 space-y-2">
         <h3 className="text-xl font-bold text-white font-noe-display">
           {title}
@@ -88,7 +87,6 @@ export default function RuixenBentoCards() {
   return (
     <section className="bg-[#0b0b0c]">
       <div className="mx-auto container py-12 md:py-20 px-4 md:px-8 max-w-[1280px]">
-        {/* Responsive Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 auto-rows-auto gap-4">
           <PlusCard {...cardContents[0]} className="lg:col-span-3 lg:row-span-2" />
           <PlusCard {...cardContents[1]} className="lg:col-span-2 lg:row-span-2" />
@@ -97,7 +95,6 @@ export default function RuixenBentoCards() {
           <PlusCard {...cardContents[4]} className="lg:col-span-2 lg:row-span-1" />
         </div>
 
-        {/* Section Footer Heading */}
         <div className="max-w-2xl ml-auto text-right px-4 mt-6 lg:-mt-20">
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-4 font-noe-display font-light">
             Built for privacy. Designed for insight.

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { getToken, getCurrentUser, removeToken } from "@/lib/api";
 import type { User } from "@/lib/api";
+import { config } from "@/lib/config";
 import { format } from "date-fns";
 import {
   Table,
@@ -76,9 +77,8 @@ export default function Reports() {
 
         setUser(userData);
 
-        // Fetch all check-ins for admin with pagination
         const response = await fetch(
-          `http://localhost:8000/api/checkin/all-checkins?page=${currentPage}&page_size=5`,
+          `${config.apiUrl}/api/checkin/all-checkins?page=${currentPage}&page_size=5`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -175,7 +175,7 @@ export default function Reports() {
                           onClick={() => {
                             const token = getToken();
                             window.open(
-                              `http://localhost:8000/api/checkin/download-pdf/${checkin.id}?token=${token}`,
+                              `${config.apiUrl}/api/checkin/download-pdf/${checkin.id}?token=${token}`,
                               "_blank"
                             );
                           }}
