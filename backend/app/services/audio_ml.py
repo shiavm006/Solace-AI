@@ -8,7 +8,6 @@ from pathlib import Path
 import asyncio
 import warnings
 
-# Suppress librosa deprecation warnings for cleaner logs
 warnings.filterwarnings("ignore", category=FutureWarning, module="librosa")
 warnings.filterwarnings("ignore", message=".*pkg_resources.*", category=UserWarning)
 
@@ -123,8 +122,6 @@ async def analyze_audio(video_path: str) -> Dict[str, Any]:
                 warnings.filterwarnings("ignore", message="PySoundFile failed")
                 warnings.filterwarnings("ignore", message=".*audioread.*")
                 
-                # Try to load audio - librosa will automatically use audioread if soundfile fails
-                # Use 'scipy' resampling type if resampy is not available
                 try:
                     audio, sr = librosa.load(
                         video_path, 
