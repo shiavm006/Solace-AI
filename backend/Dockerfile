@@ -54,15 +54,15 @@ RUN useradd --create-home --shell /bin/bash appuser && \
 
 USER appuser
 
-# Environment variables for low-memory deployment
+# Environment variables for 8GB RAM / 8 vCPU deployment
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app \
-    # Use tiny Whisper model (39MB vs 139MB for base)
-    WHISPER_MODEL_SIZE=tiny \
-    # Limit PyTorch threads to reduce memory
-    OMP_NUM_THREADS=1 \
-    MKL_NUM_THREADS=1
+    # Use base Whisper model for better accuracy (139MB vs 39MB for tiny)
+    WHISPER_MODEL_SIZE=base \
+    # Use 4 threads to utilize multiple CPUs for faster processing
+    OMP_NUM_THREADS=4 \
+    MKL_NUM_THREADS=4
 
 # Health check with longer start period for model loading
 HEALTHCHECK --interval=30s --timeout=15s --start-period=120s --retries=5 \
@@ -70,8 +70,8 @@ HEALTHCHECK --interval=30s --timeout=15s --start-period=120s --retries=5 \
 
 EXPOSE 8000
 
-# Use single worker for low-memory environments
-# Models are loaded lazily on first request
+# Use single worker (sufficient for single-user deployment)
+# Models are pre-loaded at startup for better UX
 CMD ["gunicorn", "main:app", \
     "--bind", "0.0.0.0:8000", \
     "--workers", "1", \

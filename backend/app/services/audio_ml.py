@@ -21,10 +21,8 @@ EMOTION_ANALYZER = None
 def init_whisper():
     global WHISPER_MODEL
     if WHISPER_MODEL is None:
-        # Use 'tiny' model for low-memory environments (Railway, etc.)
-        # 'tiny' = ~39MB, 'base' = ~139MB, 'small' = ~461MB
         import os
-        model_size = os.environ.get("WHISPER_MODEL_SIZE", "tiny")
+        model_size = os.environ.get("WHISPER_MODEL_SIZE", "base")
         logger.info(f"Loading Whisper model ({model_size})...")
         try:
             WHISPER_MODEL = whisper.load_model(model_size)

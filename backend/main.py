@@ -37,9 +37,23 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database connection on startup. ML models are loaded lazily on first use."""
+    """Initialize database and pre-load ML models on startup for better UX."""
     await init_database()
-    logger.info("Database initialized. ML models will be loaded on first use (lazy loading).")
+    logger.info("Database initialized. Pre-loading ML models in background...")
+    
+    # Pre-load ML models for better UX (no first-request delay)
+    # With 8GB RAM, this is safe and provides faster response times
+    from app.services.audio_ml import init_whisper, init_sentiment_models
+    import asyncio
+    loop = asyncio.get_event_loop()
+    
+    # Load Whisper model in background
+    loop.run_in_executor(None, init_whisper)
+    logger.info("Whisper model initialization started in background")
+    
+    # Load sentiment and emotion models in background
+    loop.run_in_executor(None, init_sentiment_models)
+    logger.info("Sentiment and emotion models initialization started in background")
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(checkin.router, prefix="/api/checkin", tags=["Check-ins"])
@@ -63,9 +77,9 @@ async def health_check():
         "status": "healthy",
         "api": "running",
         "database": "unknown",
-        "whisper_model": "not loaded (lazy)",
-        "sentiment_model": "not loaded (lazy)",
-        "emotion_model": "not loaded (lazy)",
+        "whisper_model": "loading",
+        "sentiment_model": "loading",
+        "emotion_model": "loading",
         "timestamp": datetime.utcnow().isoformat()
     }
     
