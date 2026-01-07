@@ -1,7 +1,8 @@
 from pydantic_settings import BaseSettings
-from typing import List
-from pydantic import Field
-from pathlib import Path
+from typing import List, Union
+from pydantic import Field, field_validator
+import json
+import os
 
 class Settings(BaseSettings):
     MONGODB_URL: str = Field(default="mongodb://localhost:27017", validation_alias="MONGO_URI")
@@ -16,6 +17,32 @@ class Settings(BaseSettings):
         default=["http://localhost:3000"],
         validation_alias="CORS_ORIGINS"
     )
+    
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v):
+        """Parse CORS_ORIGINS from JSON string, comma-separated string, or list"""
+        if isinstance(v, str):
+            v = v.strip()
+            # Try to parse as JSON array first
+            if v.startswith('['):
+                try:
+                    parsed = json.loads(v)
+                    if isinstance(parsed, list):
+                        # Remove trailing slashes from URLs
+                        return [url.rstrip('/') for url in parsed if url]
+                except json.JSONDecodeError:
+                    pass
+            
+            # Fallback: treat as comma-separated string
+            origins = [origin.strip().rstrip('/') for origin in v.split(',') if origin.strip()]
+            return origins
+        
+        if isinstance(v, list):
+            # Remove trailing slashes from URLs
+            return [url.rstrip('/') if isinstance(url, str) else url for url in v if url]
+        
+        return v
     
     GROQ_API_KEY: str = Field(default="")
     
@@ -32,4 +59,3 @@ class Settings(BaseSettings):
         extra = "ignore"
 
 settings = Settings()
-

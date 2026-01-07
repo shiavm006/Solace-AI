@@ -1,7 +1,6 @@
 # ===========================================
-# Solace AI Backend - Production Dockerfile
+# Solace AI Backend - Railway Deployment
 # ===========================================
-# Optimized for low-memory environments (Railway, etc.)
 
 # ---- Build Stage ----
 FROM python:3.11-slim as builder
@@ -36,7 +35,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsndfile1 \
     libgl1 \
     libglib2.0-0 \
-    curl \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -54,29 +52,18 @@ RUN useradd --create-home --shell /bin/bash appuser && \
 
 USER appuser
 
-# Environment variables for 8GB RAM / 8 vCPU deployment
+# Environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app \
-    # Use base Whisper model for better accuracy (139MB vs 39MB for tiny)
     WHISPER_MODEL_SIZE=base \
-    # Use 4 threads to utilize multiple CPUs for faster processing
     OMP_NUM_THREADS=4 \
     MKL_NUM_THREADS=4
 
-# Health check with longer start period for model loading
-HEALTHCHECK --interval=30s --timeout=15s --start-period=120s --retries=5 \
-    CMD curl -f http://localhost:8000/health || exit 1
+# NO HEALTHCHECK - Railway uses its own health check system
+# Railway injects PORT env variable automatically
 
 EXPOSE 8000
 
-# Use single worker (sufficient for single-user deployment)
-# Models are pre-loaded at startup for better UX
-CMD ["gunicorn", "main:app", \
-    "--bind", "0.0.0.0:8000", \
-    "--workers", "1", \
-    "--worker-class", "uvicorn.workers.UvicornWorker", \
-    "--timeout", "300", \
-    "--keep-alive", "5", \
-    "--access-logfile", "-", \
-    "--error-logfile", "-"]
+# Start server on Railway's PORT (defaults to 8000 if not set)
+CMD ["sh", "-c", "exec gunicorn main:app --bind 0.0.0.0:${PORT:-8000} --workers 1 --worker-class uvicorn.workers.UvicornWorker --timeout 300 --keep-alive 5 --access-logfile - --error-logfile -"]
