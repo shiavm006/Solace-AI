@@ -124,6 +124,20 @@ export default function Welcome() {
                       </button>
                     </div>
                   </div>
+
+                  {/* Project Info Box */}
+                  <div className="mt-6 bg-yellow-500/20 backdrop-blur-md rounded-xl border border-yellow-500/40 p-6 space-y-4">
+                    <p className="text-yellow-400 text-sm leading-relaxed">
+                      <span className="font-semibold">ℹ️ About This Project:</span> Solace AI is a workplace wellness monitoring system designed for management teams to understand and predict employee work experience. Through daily video check-ins, our ML models analyze facial expressions, speech patterns, voice tone, attire, and body language to extract meaningful wellness metrics. Each check-in generates a comprehensive report tracking mental health indicators, stress levels, engagement, and burnout risk — helping organizations support their people proactively.
+                    </p>
+                    <div className="pt-4 border-t border-yellow-500/30">
+                      <p className="text-yellow-400 text-sm">
+                        <span className="font-semibold">🔑 MVP Admin Access:</span> You can test the admin panel by logging in with:<br />
+                        <span className="font-mono text-yellow-300 ml-2">Email: admin@gmail.com</span><br />
+                        <span className="font-mono text-yellow-300 ml-2">Password: 1234567890</span>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
